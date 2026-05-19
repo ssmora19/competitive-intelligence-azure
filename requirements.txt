@@ -1,0 +1,8 @@
+azure-functions>=1.18.0
+azure-storage-blob>=12.19.0
+azure-data-tables>=12.4.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+isodate>=0.6.1
+firecrawl-py>=1.0.0
+feedparser>=6.0.0
