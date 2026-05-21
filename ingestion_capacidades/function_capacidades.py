@@ -1,29 +1,4 @@
-"""
-ingestion_capacidades/function_capacidades.py
-=============================================
-Azure Function — KIT 7: Capacidades internas y talento humano
 
-Fuentes automatizables Bronze:
-  1. LinkedIn Jobs — qué perfiles TI demanda el mercado en Colombia
-     → Detecta gaps entre lo que TAK tiene y lo que el mercado pide
-  2. LinkedIn empleados TAK — perfil público del equipo de TAK
-     → Qué certificaciones y skills tiene el equipo actual
-  3. Portales de empleo Colombia — TI, Computrabajo, LinkedIn
-     → Confirma demanda de perfiles específicos
-  4. Web TAK — portafolio y servicios publicados
-     → Qué capacidades declara TAK públicamente
-  5. Certificaciones de fabricantes — Oracle, Microsoft, Red Hat
-     → Qué niveles de certificación están disponibles
-
-Fuentes NO automatizables (requieren datos internos de TAK):
-  - Evaluaciones internas de desempeño
-  - Auditorías tecnológicas internas
-  - Cultura organizacional
-  - Datos de RRHH
-
-Container Bronze: bronze-capacidades
-Frecuencia: trimestral — las capacidades cambian lentamente
-"""
 
 import os
 import sys
@@ -44,9 +19,7 @@ from shared.state_manager    import (
 )
 from shared.logger           import IngestLogger, get_last_runs
 
-# ─────────────────────────────────────────────────────────────
-# CONFIGURACIÓN
-# ─────────────────────────────────────────────────────────────
+
 CONN_STR         = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
 BRONZE_CONTAINER = "bronze-capacidades"
 
@@ -55,10 +28,6 @@ app   = func.FunctionApp()
 fc    = FirecrawlClient()
 apify = ApifyClient()
 
-
-# ─────────────────────────────────────────────────────────────
-# ORQUESTADOR DELTA
-# ─────────────────────────────────────────────────────────────
 
 def _ingestar(
     fuente:     str,
@@ -136,20 +105,8 @@ def _ingestar(
     }
 
 
-# ─────────────────────────────────────────────────────────────
-# INGESTORES
-# ─────────────────────────────────────────────────────────────
-
 def ingest_demanda_perfiles_ti() -> dict:
-    """
-    LinkedIn Jobs — perfiles TI demandados en Colombia.
 
-    Compara qué pide el mercado vs qué tiene TAK.
-    Si el mercado busca "Oracle Cloud Architect" y TAK no tiene ese perfil
-    → gap de capacidad detectado automáticamente en Silver.
-
-    Frecuencia: trimestral.
-    """
     keywords = [
         "Oracle DBA Colombia",
         "Snowflake Engineer Colombia",
@@ -185,15 +142,7 @@ def ingest_demanda_perfiles_ti() -> dict:
 
 
 def ingest_web_tak() -> dict:
-    """
-    Web pública de TAK — capacidades y servicios declarados.
 
-    Detecta qué está publicando TAK sobre sí mismo:
-    servicios, tecnologías, casos de éxito, equipo.
-    Sirve para comparar capacidades declaradas vs demanda del mercado.
-
-    Frecuencia: trimestral.
-    """
     urls = [
         "https://takcolombia.com.co/",
         "https://takcolombia.com.co/servicios/",
@@ -211,14 +160,7 @@ def ingest_web_tak() -> dict:
 
 
 def ingest_certificaciones_fabricantes() -> dict:
-    """
-    Programas de certificación de los fabricantes partners de TAK.
 
-    Detecta qué certificaciones están disponibles en Oracle, Microsoft,
-    Red Hat e IBM — y cuáles son las más demandadas en el mercado.
-
-    Frecuencia: trimestral.
-    """
     urls = [
         # Oracle Certification
         "https://education.oracle.com/certification",
@@ -243,14 +185,7 @@ def ingest_certificaciones_fabricantes() -> dict:
 
 
 def ingest_portales_empleo_ti() -> dict:
-    """
-    Portales de empleo Colombia — confirma demanda de perfiles TI.
 
-    Elempleo y Computrabajo son los portales más usados en Colombia.
-    Busca ofertas de trabajo con tecnologías del portafolio de TAK.
-
-    Frecuencia: trimestral.
-    """
     urls = [
         "https://www.elempleo.com/co/ofertas-empleo/oracle",
         "https://www.elempleo.com/co/ofertas-empleo/snowflake",
@@ -267,14 +202,7 @@ def ingest_portales_empleo_ti() -> dict:
 
 
 def ingest_benchmarking_capacidades() -> dict:
-    """
-    Benchmarking de capacidades — qué ofrecen los competidores de TAK.
 
-    Compara las capacidades publicadas de TAK vs competidores directos
-    como SETI, Comware, CETUS, etc. — empresas colombianas similares.
-
-    Frecuencia: trimestral.
-    """
     urls = [
         "https://seti.com.co/servicios/",
         "https://www.comware.com.co/servicios/",
@@ -291,9 +219,7 @@ def ingest_benchmarking_capacidades() -> dict:
     )
 
 
-# ─────────────────────────────────────────────────────────────
-# MAPA DE FUENTES
-# ─────────────────────────────────────────────────────────────
+
 FUENTES = {
     "demanda_perfiles_ti":       ingest_demanda_perfiles_ti,
     "web_tak":                   ingest_web_tak,
@@ -310,16 +236,10 @@ def _ensure_tables():
         log.warning("Tablas de control: %s", ex)
 
 
-# ─────────────────────────────────────────────────────────────
-# TRIGGERS — Timer (trimestral)
-# ─────────────────────────────────────────────────────────────
 
 @app.timer_trigger(schedule="0 0 14 1 1,4,7,10 *", arg_name="timer", run_on_startup=False)
 def timer_capacidades_trimestral(timer: func.TimerRequest) -> None:
-    """
-    Todas las fuentes — trimestral (1 ene, 1 abr, 1 jul, 1 oct) 9am Colombia.
-    Las capacidades cambian lentamente — trimestral es suficiente.
-    """
+
     _ensure_tables()
     # LinkedIn Jobs usa Apify — se ejecuta siempre
     r1 = ingest_demanda_perfiles_ti()
@@ -330,10 +250,6 @@ def timer_capacidades_trimestral(timer: func.TimerRequest) -> None:
     log.info("Capacidades trimestral: perfiles=%s tak=%s cert=%s empleo=%s bench=%s",
              r1, r2, r3, r4, r5)
 
-
-# ─────────────────────────────────────────────────────────────
-# HTTP TRIGGERS
-# ─────────────────────────────────────────────────────────────
 
 @app.route(route="capacidades/ejecutar", methods=["GET", "POST"])
 def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
