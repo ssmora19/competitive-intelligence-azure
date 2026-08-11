@@ -1,6 +1,6 @@
 """
 shared/news_client.py
-=====================
+
 Cliente para RSS feeds de noticias tech — tendencias tecnológicas.
 
 Usa feedparser para leer RSS/Atom feeds — completamente gratuito.
@@ -16,6 +16,10 @@ Fuentes configuradas:
   - Platzi Blog (tech Colombia/Latam)
   - MinTIC noticias (tech Colombia)
 
+NUEVO — buscar_noticias_empresa():
+  Google News RSS por nombre de entidad (Camino A). Reemplaza el scraping
+  de rutas /news que producía 404. Lo usan clientes y competidores.
+
 Relevancia para TAK:
   Detecta tendencias antes de que lleguen al mercado colombiano.
   Especialmente útil para Oracle, Snowflake y cloud que son el core de TAK.
@@ -25,6 +29,7 @@ import time
 import logging
 from datetime import datetime, timezone
 from typing import Optional
+from urllib.parse import quote_plus
 
 log = logging.getLogger("ci.news")
 
@@ -56,6 +61,7 @@ class NewsClient:
         client   = NewsClient()
         noticias = client.get_feed("oracle_blog", limite=10)
         todas    = client.get_all_feeds(limite=5)
+        prensa   = client.buscar_noticias_empresa("Ecopetrol", limite=10)
     """
 
     def __init__(self, throttle: int = DEFAULT_THROTTLE):
@@ -153,6 +159,47 @@ class NewsClient:
             todos.extend(items)
             time.sleep(self._throttle)
         return todos
+
+    # ─────────────────────────────────────────────────────────────
+    # NUEVO — Google News por nombre de entidad (Camino A)
+    # ─────────────────────────────────────────────────────────────
+    def buscar_noticias_empresa(
+        self,
+        nombre_empresa: str,
+        limite: int = 10,
+        region: str = "CO",
+        idioma: str = "es-419",
+    ) -> list[dict]:
+        """
+        QUÉ HACE:
+          Arma el feed RSS de búsqueda de Google News para nombre_empresa,
+          filtrado por región (Colombia) e idioma, y lo lee con get_feed.
+
+        PARA QUÉ SIRVE:
+          Traer noticias de TERCEROS sobre un competidor o cliente SIN
+          scrapear su web (evita los 404 de rutas adivinadas). Gratis.
+          Reutiliza get_feed, que ya sabe leer y limpiar RSS.
+
+        Ejemplo:
+          buscar_noticias_empresa("Ecopetrol") ->
+          https://news.google.com/rss/search?q=Ecopetrol&hl=es-419&gl=CO&ceid=CO:es
+        """
+        if not nombre_empresa or not nombre_empresa.strip():
+            return []
+
+        query        = quote_plus(nombre_empresa.strip())
+        idioma_corto = idioma.split("-")[0]
+        url = (
+            f"https://news.google.com/rss/search?q={query}"
+            f"&hl={idioma}&gl={region}&ceid={region}:{idioma_corto}"
+        )
+
+        items = self.get_feed(url, limite=limite)
+        # Reetiquetar la trazabilidad: por qué entidad se buscó
+        for it in items:
+            it["_fuente_rss"]      = f"google_news:{nombre_empresa}"
+            it["_entidad_buscada"] = nombre_empresa
+        return items
 
     def throttle(self) -> None:
         time.sleep(self._throttle)

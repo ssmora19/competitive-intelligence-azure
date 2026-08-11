@@ -3,11 +3,15 @@ shared/apify_client.py
 ======================
 Cliente centralizado para Apify.
 
-Un solo lugar para:
+Apify es el servicios que corre los scrapers de redes sociales. 
+Este módulo centraliza la interacción con Apify para que el resto del código no haga requests directos.
+
+En este archivo se encapsula la lógica para:
   - ejecutar actores
   - obtener datasets
   - manejar errores y timeouts
   - throttling entre llamadas
+  - construir payloads para cada plataforma
 
 Así ninguna function hace requests directos a Apify.
 """
@@ -47,8 +51,9 @@ class ApifyClient:
 
     def run_actor(self, actor_id: str, payload: dict) -> list[dict]:
         """
+        Request (POST) 
         Ejecuta un actor de Apify y retorna los items crudos del dataset.
-        No procesa, no parsea — retorna la lista tal como viene.
+        No procesa, no parsea, solo retorna la lista tal como viene.
 
         Parámetros:
             actor_id: ID del actor (ej: "apify~instagram-scraper")
@@ -56,6 +61,7 @@ class ApifyClient:
 
         Retorna:
             lista de dicts crudos, o [] si hubo error
+            pero devuelve un datset_id, osea el id de donde se van a guardar los datos
         """
         run_url = (
             f"https://api.apify.com/v2/acts/{actor_id}/runs"
@@ -96,9 +102,7 @@ class ApifyClient:
         time.sleep(self._throttle)
 
 
-# ─────────────────────────────────────────────────────────────
-# PAYLOADS POR PLATAFORMA
-# ─────────────────────────────────────────────────────────────
+#Playload por plataforma
 # Cada función construye su payload aquí.
 # Si Apify cambia un parámetro, se cambia en un solo lugar.
 

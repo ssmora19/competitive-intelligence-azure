@@ -1,6 +1,6 @@
 """
 shared/state_manager.py
-========================
+
 Control de ingestión incremental (DELTA) por fuente/empresa.
 
 Tabla: BronzeDeltaControl
@@ -34,10 +34,6 @@ TABLE_DELTA        = "controlIngesta"
 MAX_IDS_REMEMBERED = 50  # rolling window — cubre holgadamente los 5-10 items por ejecución
 
 
-# ─────────────────────────────────────────────────────────────
-# INICIALIZACIÓN
-# ─────────────────────────────────────────────────────────────
-
 def init_delta_table(conn_str: str) -> None:
     """Crea la tabla de control si no existe. Idempotente."""
     svc = TableServiceClient.from_connection_string(conn_str)
@@ -60,10 +56,6 @@ def _normalize(value: str) -> str:
         .replace("=", "").replace(".", "_")
     )[:252]
 
-
-# ─────────────────────────────────────────────────────────────
-# HASH — identidad de un batch
-# ─────────────────────────────────────────────────────────────
 
 def compute_batch_hash(items: list[dict]) -> str:
     """
@@ -94,11 +86,6 @@ def extract_item_id(item: dict) -> str:
         if val:
             return str(val)[:200]
     return hashlib.md5(json.dumps(item, sort_keys=True, default=str).encode()).hexdigest()
-
-
-# ─────────────────────────────────────────────────────────────
-# CURSOR — lectura y escritura
-# ─────────────────────────────────────────────────────────────
 
 def get_cursor(conn_str: str, fuente: str, empresa: str) -> dict:
     """
@@ -161,10 +148,6 @@ def reset_cursor(conn_str: str, fuente: str, empresa: str) -> None:
         pass
 
 
-# ─────────────────────────────────────────────────────────────
-# FILTRO DELTA — el núcleo del sistema incremental
-# ─────────────────────────────────────────────────────────────
-
 class DeltaResult:
     def __init__(self, items_fetched, items_new, items_skipped, batch_hash, is_identical_batch):
         self.items_fetched       = items_fetched
@@ -216,10 +199,6 @@ def apply_delta(items: list[dict], cursor: dict) -> DeltaResult:
         is_identical_batch=False,
     )
 
-
-# ─────────────────────────────────────────────────────────────
-# OBSERVABILIDAD
-# ─────────────────────────────────────────────────────────────
 
 def get_all_cursors(conn_str: str) -> list[dict]:
     """Retorna el estado de todos los cursores para el endpoint /status."""

@@ -3,24 +3,34 @@ ingestion_mercado/function_mercado.py
 =====================================
 Azure Function — KIT 5: Comportamiento del mercado tecnológico
 
-Preguntas que responde:
-  1. ¿Qué segmentos del mercado presentan mayor crecimiento?
+KIN que responde:
+  1. ¿Qué segmentos del mercado presentan mayor crecimiento en la demanda?
   2. ¿Qué necesidades no satisfechas existen en el mercado?
-  3. ¿Qué regiones o sectores presentan oportunidades de expansión?
+  3. ¿Qué regiones o sectores presentan oportunidades de expansión para TAK?
 
-Fuentes Bronze:
-  1. DANE — estadísticas económicas Colombia (API pública gratuita)
-  2. Banco de la República — reportes económicos (Firecrawl)
-  3. Reportes sectoriales — MinTIC, Fedesoft, Colombia TIC (Firecrawl)
-  4. RSS noticias económicas — portafolio, dinero, la república (RSS)
-  5. Redes sociales mercado — X/Twitter con hashtags de mercado TI Colombia
-  6. Estudios de mercado — IDC, Gartner Latam (Firecrawl)
+Fuentes Bronze (auditadas contra los KIN — solo fuentes REALES y verificadas):
+  1. DANE — Indicadores básicos de TIC en Empresas (Firecrawl)   -> KIN 1, 3
+  2. Fedesoft + Cenisoft — estudios del sector software/TI (Firecrawl) -> KIN 1, 2
+  3. Noticias de mercado — Google News por tema (news_client)    -> KIN 1, 2
+  4. Redes sociales de mercado — X/Twitter (Apify) [OPCIONAL]     -> señal blanda
+
+Nota KIN 3 (regiones/sectores con oportunidad de expansión):
+  NO se ingiere aquí. La mejor respuesta es el SECOP que ya se ingiere en
+  clientes/competidores, agregado por departamento y sector en la capa Gold.
+  Duplicar esa ingesta aquí ensuciaría Bronze sin aportar señal nueva.
+
+Fuentes ELIMINADAS en la auditoría (no eran válidas):
+  - IDC / Gartner / Everest: informes de pago, no scrapeables (daban 404/marketing).
+  - BanRep /economia-digital, DNP /desarrollo-empresarial/tic, Colombia
+    Productiva /software-y-ti: rutas supuestas que no existían (404).
+  - colombiatic stats.php y sala de prensa MinTIC genérica: stale / 404.
+  - RSS hardcodeados (Dinero, etc.): varios feeds muertos -> migrado a Google News.
 
 Container Bronze: bronze-mercado
 
 Frecuencia:
-  Trimestral → reportes económicos y estudios de mercado
-  Mensual    → noticias económicas y redes sociales
+  Trimestral -> DANE + estudios sectoriales (reportes que casi no cambian)
+  Mensual    -> noticias (Google News) + redes (si se activa)
 """
 
 import os
@@ -50,7 +60,7 @@ CONN_STR         = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
 BRONZE_CONTAINER = "bronze-mercado"
 
 log   = logging.getLogger("ci.mercado")
-app   = func.FunctionApp()
+app = func.Blueprint()
 fc    = FirecrawlClient()
 news  = NewsClient()
 apify = ApifyClient()
@@ -142,129 +152,142 @@ def _ingestar(
 
 def ingest_dane_estadisticas() -> dict:
     """
-    DANE — estadísticas TIC de Colombia vía Firecrawl.
+    QUÉ HACE:
+      Scrapea la operación del DANE "Indicadores básicos de TIC en Empresas"
+      (página actual + históricos), que trae adopción de tecnología en
+      empresas colombianas por actividad económica.
+    PARA QUÉ SIRVE:
+      KIN 1 (segmentos con mayor adopción/demanda) y KIN 3 (por sector).
 
-    Detecta: adopción de tecnología en empresas colombianas,
-    cobertura digital, inversión en TIC por sector.
+    NOTA: el DANE publica los datos en boletines PDF enlazados desde estas
+    páginas; el scraping trae la página índice con los enlaces. El filtro de
+    statusCode del firecrawl_client descarta cualquier ruta que dé 404.
 
-    Frecuencia: trimestral.
+    Frecuencia: trimestral (el DANE actualiza esta operación 1-2 veces al año).
     """
     urls = [
-        "https://www.dane.gov.co/index.php/estadisticas-por-tema/tecnologia-e-innovacion/tecnologias-de-la-informacion-y-las-comunicaciones-tic",
+        # Verificadas reales:
         "https://www.dane.gov.co/index.php/estadisticas-por-tema/tecnologia-e-innovacion/tecnologias-de-la-informacion-y-las-comunicaciones-tic/indicadores-basicos-de-tic-en-empresas",
-        "https://www.mintic.gov.co/portal/inicio/Sala-de-Prensa/Noticias/",
-        "https://colombiatic.mintic.gov.co/estadisticas/stats.php",
+        "https://www.dane.gov.co/index.php/estadisticas-por-tema/tecnologia-e-innovacion/tecnologias-de-la-informacion-y-las-comunicaciones-tic/indicadores-basicos-de-tic-en-empresas/indicadores-basicos-de-tic-en-empresas-historicos",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
         fuente     = "dane_estadisticas",
         empresa    = "mercado_colombia",
         items_raw  = items_raw,
-        source_url = "dane_gov_co_tic",
+        source_url = "dane_tic_empresas",
     )
 
 
 def ingest_reportes_economicos() -> dict:
     """
-    Reportes económicos del Banco de la República y entidades oficiales.
+    QUÉ HACE:
+      Scrapea las publicaciones del gremio del software colombiano: Fedesoft
+      (noticias/comunicados del sector) y Cenisoft (estudios de empleabilidad
+      y talento TI).
+    PARA QUÉ SIRVE:
+      KIN 1 (crecimiento del sector software/TI) y KIN 2 (necesidades no
+      satisfechas: brecha de talento, habilidades más demandadas).
 
-    Detecta: tendencias macroeconómicas, inversión tech en Colombia,
-    sectores con mayor crecimiento.
-
-    Frecuencia: trimestral.
+    Frecuencia: trimestral (publican por congreso/estudio, no a diario).
     """
     urls = [
-        "https://www.banrep.gov.co/es/estadisticas/economia-digital",
-        "https://www.dnp.gov.co/programas/desarrollo-empresarial/tic",
-        "https://www.colombiaproductiva.com/ptp-sectores/servicios/software-y-ti",
+        # Verificadas reales:
         "https://fedesoft.org/noticias/",
+        "https://cenisoft.org/estudioempleabilidadti/",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
         fuente     = "reportes_economicos",
         empresa    = "mercado_colombia",
         items_raw  = items_raw,
-        source_url = "banrep_dnp_fedesoft",
+        source_url = "fedesoft_cenisoft",
     )
 
 
-def ingest_estudios_mercado_ti() -> dict:
+def ingest_ontic_barreras_adopcion() -> dict:
     """
-    Estudios de mercado TI — IDC, Gartner Latam, Everest Group.
+    QUÉ HACE:
+      Scrapea indicadores del Observatorio Nacional de TIC (ONTIC) de MinTIC,
+      que procesa las encuestas del DANE: razones de NO adopción de TIC y
+      adopción por sector económico.
+    PARA QUÉ SIRVE:
+      - Mercado KIN 2 (necesidades no satisfechas del mercado).
+      - CRUZADO → Clientes KIN 7 (barreras que impiden la adopción) y
+        Clientes KIN 8 (madurez digital de segmentos que no adoptan).
+      Se ingiere aquí, en mercado (señal de nivel-mercado), NO en clientes, para
+      no duplicar. Gold lo cruza con los KIN de clientes.
 
-    Detecta: tamaño del mercado, forecast de crecimiento,
-    segmentos con mayor demanda en Latam y Colombia.
+    NOTA: indicadores del catálogo de ONTIC referidos a EMPRESAS (fuente:
+    Encuesta TIC en Empresas del DANE), desagregables por sector/tamaño = madurez
+    por segmento. Se pueden agregar más indicadores del catálogo si aplican.
 
     Frecuencia: trimestral.
     """
     urls = [
-        "https://www.idc.com/getdoc.jsp?containerId=prLA52230624",
-        "https://www.gartner.com/en/information-technology/insights/it-spending-forecast",
-        "https://www.everestgrp.com/locations/latin-america/",
-        "https://www.mintic.gov.co/portal/inicio/Sala-de-Prensa/",
+        "https://ontic.mintic.gov.co/portal/Secciones/Indicadores/",
+        # Empresas — madurez / adopción por segmento (KIN 8) :
+        "https://ontic.mintic.gov.co/portal/Secciones/Indicadores/Transformacion-digital-productiva/383060:Empresas-que-usaron-Internet-y-herramientas-tecnologicas",
+        "https://ontic.mintic.gov.co/portal/Secciones/Indicadores/Transformacion-digital-productiva/399417:Empresas-innovadoras-del-sector-servicios-y-comercio",
+        "https://ontic.mintic.gov.co/portal/Secciones/Indicadores/Transformacion-digital-productiva/399418:Empresas-del-sector-servicios-y-comercio-que-usan-tableros-de-control-o-seguimiento",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
-        fuente     = "estudios_mercado_ti",
-        empresa    = "mercado_global",
+        fuente     = "ontic_barreras_adopcion",
+        empresa    = "mercado_colombia",
         items_raw  = items_raw,
-        source_url = "idc_gartner_everest_mintic",
+        source_url = "ontic_mintic_indicadores",
     )
 
 
 def ingest_noticias_economicas() -> dict:
     """
-    RSS de medios económicos colombianos.
-
-    Detecta: noticias de inversión, contratos tech, expansión de empresas,
-    licitaciones relevantes para TAK.
+    QUÉ HACE:
+      Trae noticias de mercado tecnológico colombiano vía Google News RSS
+      (por tema), reutilizando news_client.buscar_noticias_empresa.
+    PARA QUÉ SIRVE:
+      KIN 1 y 2 — señal fresca de crecimiento, inversión y necesidades del
+      mercado. Reemplaza los RSS hardcodeados (varios muertos) por Google
+      News, que no requiere adivinar rutas ni mantener feeds.
 
     Frecuencia: mensual.
     """
-    import feedparser
-
-    feeds_economicos = {
-        "portafolio":    "https://www.portafolio.co/rss/feeds.xml",
-        "dinero":        "https://www.dinero.com/rss/tecnologia.xml",
-        "la_republica":  "https://www.larepublica.co/rss/tecnologia",
-        "enter_co":      "https://www.enter.co/feed/",
-    }
+    temas = [
+        "mercado tecnologia Colombia",
+        "transformacion digital empresas Colombia",
+        "inversion tecnologia Colombia",
+        "software TI Colombia crecimiento",
+        "adopcion nube empresas Colombia",
+    ]
 
     todos_items = []
-    for fuente_rss, url in feeds_economicos.items():
-        try:
-            feed = feedparser.parse(url)
-            for entry in feed.entries[:10]:
-                item = {
-                    "title":       entry.get("title", ""),
-                    "link":        entry.get("link", ""),
-                    "summary":     entry.get("summary", "")[:2000],
-                    "published":   entry.get("published", ""),
-                    "_fuente_rss": fuente_rss,
-                    "_url_feed":   url,
-                }
-                todos_items.append(item)
-            log.info("RSS económico: %d items de %s", len(feed.entries[:10]), fuente_rss)
-        except Exception as ex:
-            log.error("RSS económico error [%s]: %s", fuente_rss, ex)
-        time.sleep(1)
+    for tema in temas:
+        noticias = news.buscar_noticias_empresa(tema, limite=10)
+        todos_items.extend(noticias)
+        news.throttle()
 
     return _ingestar(
         fuente     = "noticias_economicas",
         empresa    = "mercado_colombia",
         items_raw  = todos_items,
-        source_url = "portafolio_dinero_larepublica_enter",
+        source_url = "google_news:mercado_ti_colombia",
     )
 
 
 def ingest_redes_sociales_mercado() -> dict:
     """
-    X/Twitter — conversaciones sobre mercado TI Colombia.
+    QUÉ HACE:
+      X/Twitter — conversaciones sobre mercado TI Colombia por hashtags.
+    PARA QUÉ SIRVE:
+      Señal BLANDA de necesidades/tendencias mencionadas en redes.
 
-    Detecta: necesidades no satisfechas, sectores buscando tech,
-    oportunidades de expansión mencionadas en redes.
+    ⚠️ OPCIONAL — evaluar contra los KIN antes de dejarla activa:
+      · Consume crédito de Apify.
+      · El ruido de hashtags aporta poco a KIN de mercado frente a DANE/Fedesoft.
+      Por eso NO está en el timer por defecto; queda disponible por HTTP
+      (?fuente=redes_sociales_mercado) para que decidas si la conservas.
 
-    Frecuencia: mensual.
+    Frecuencia: mensual (si se activa).
     """
     hashtags = [
         "#TransformacionDigital #Colombia",
@@ -302,9 +325,9 @@ def ingest_redes_sociales_mercado() -> dict:
 FUENTES = {
     "dane_estadisticas":       ingest_dane_estadisticas,
     "reportes_economicos":     ingest_reportes_economicos,
-    "estudios_mercado_ti":     ingest_estudios_mercado_ti,
+    "ontic_barreras_adopcion": ingest_ontic_barreras_adopcion,
     "noticias_economicas":     ingest_noticias_economicas,
-    "redes_sociales_mercado":  ingest_redes_sociales_mercado,
+    "redes_sociales_mercado":  ingest_redes_sociales_mercado,  # opcional (HTTP)
 }
 
 
@@ -322,22 +345,24 @@ def _ensure_tables():
 @app.timer_trigger(schedule="0 0 14 1 1,4,7,10 *", arg_name="timer", run_on_startup=False)
 def timer_mercado_trimestral(timer: func.TimerRequest) -> None:
     """
-    DANE + reportes + estudios — trimestral (1 ene, 1 abr, 1 jul, 1 oct) 9am Colombia.
+    DANE + reportes sectoriales — trimestral (1 ene, abr, jul, oct) 9am Colombia.
     """
     _ensure_tables()
     r1 = ingest_dane_estadisticas()
     r2 = ingest_reportes_economicos()
-    r3 = ingest_estudios_mercado_ti()
-    log.info("Mercado trimestral: dane=%s reportes=%s estudios=%s", r1, r2, r3)
+    r3 = ingest_ontic_barreras_adopcion()
+    log.info("Mercado trimestral: dane=%s reportes=%s ontic=%s", r1, r2, r3)
 
 
 @app.timer_trigger(schedule="0 0 14 1 * *", arg_name="timer", run_on_startup=False)
 def timer_mercado_mensual(timer: func.TimerRequest) -> None:
-    """Noticias económicas + redes — mensual día 1 9am Colombia."""
+    """
+    Noticias de mercado (Google News) — mensual día 1 9am Colombia.
+    (Redes sociales queda fuera del timer por defecto; ver docstring.)
+    """
     _ensure_tables()
     r1 = ingest_noticias_economicas()
-    r2 = ingest_redes_sociales_mercado()
-    log.info("Mercado mensual: noticias=%s redes=%s", r1, r2)
+    log.info("Mercado mensual: noticias=%s", r1)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -345,7 +370,7 @@ def timer_mercado_mensual(timer: func.TimerRequest) -> None:
 # ─────────────────────────────────────────────────────────────
 
 @app.route(route="mercado/ejecutar", methods=["GET", "POST"])
-def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
+def ejecutar_mercado(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/mercado/ejecutar?fuente=dane_estadisticas
     GET /api/mercado/ejecutar?fuente=todas
@@ -377,7 +402,7 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="mercado/status", methods=["GET"])
-def status(req: func.HttpRequest) -> func.HttpResponse:
+def status_mercado(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/mercado/status
     GET /api/mercado/status?fuente=dane_estadisticas
@@ -418,7 +443,7 @@ def status(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="mercado/reset_cursor", methods=["POST"])
-def reset(req: func.HttpRequest) -> func.HttpResponse:
+def reset_mercado(req: func.HttpRequest) -> func.HttpResponse:
     """POST /api/mercado/reset_cursor?fuente=dane_estadisticas&empresa=mercado_colombia"""
     fuente  = req.params.get("fuente", "")
     empresa = req.params.get("empresa", "")

@@ -3,21 +3,45 @@ ingestion_regulatorio/function_regulatorio.py
 =============================================
 Azure Function — KIT 6: Entorno regulatorio y financiero tecnológico
 
-Fuentes Bronze:
-  1. Firecrawl — MinTIC (normativa, leyes, políticas TI Colombia)
-  2. Firecrawl — Colombia Compra Eficiente (regulación compra pública, acuerdos marco)
-  3. Firecrawl — Diario Oficial / Función Pública (leyes y decretos)
-  4. Firecrawl — Superintendencias (regulación financiera y digital)
-  5. Firecrawl — Fuentes de inversión/financiamiento (iNNpulsa, Bancoldex, fondos VC)
-  6. RSS — noticias regulatorias y de inversión tech
+KIN que responde:
+  1. Regulaciones de datos/privacidad/servicios TI    -> SIC + normativa TIC + CCE
+  2. Políticas públicas / programas gubernamentales    -> MinTIC + noticias
+  3. Tendencias de inversión                           -> inversion_tech + noticias
+  4. Oportunidades de financiamiento                   -> financiamiento_tech
+  5. Condiciones de acceso a financiamiento            -> financiamiento + noticias
+  6. Inversión de competidores/startups                -> inversion_tech + Google News
 
-NOTA: SECOP fue movido a ingestion_clientes (detecta clientes potenciales, no regulación)
+Fuentes Bronze (auditadas y verificadas contra los KIN):
+  BLOQUE REGULATORIO
+    1. mintic          — portal MinTIC (políticas, noticias)        -> KIN 2
+    2. normativa_tic   — normograma.mintic.gov.co (decretos/boletines) -> KIN 1
+    3. sic_datos       — SIC protección de datos (Ley 1581/Hábeas Data) -> KIN 1
+    4. colombia_compra — Colombia Compra Eficiente (compra pública)  -> KIN 1,2
+  BLOQUE FINANCIERO
+    5. financiamiento_tech — Minciencias + MinTIC convocatorias      -> KIN 4,5
+    6. inversion_tech      — LatamList, Contxto, LAVCA               -> KIN 3,6
+    7. noticias_regulatorio— Google News (regulación + inversión)    -> KIN 1..6
+
+Cambios de la auditoría:
+  - AÑADIDA la SIC (protección de datos): faltaba, y es LA autoridad del KIN 1
+    (datos/privacidad) bajo la Ley 1581 de 2012. Hueco cerrado.
+  - MinTIC normativa corregida: de /portal/inicio/Normativa/ (ruta supuesta) a
+    normograma.mintic.gov.co (portal jurídico real del sector TIC).
+  - ELIMINADO normativa_legal: funcionpublica/normativa y suin-juriscol/decretos
+    no servían (verificado por el usuario); su normativa la cubre normograma.
+  - inversion_tech: quitadas las URLs que no cargaban (idbinvest, bancoldex e
+    innpulsa de inversión). Quedan LatamList, Contxto, LAVCA.
+  - financiamiento_tech: iNNpulsa y Bancóldex reincorporados con sus URLs REALES
+    verificadas (convocatorias.innpulsacolombia.com, bancoldex portafolio/noticias).
+  - rss_regulatorio (RSS hardcodeados, feeds muertos) -> migrado a Google News.
+
+NOTA: SECOP vive en ingestion_clientes (detecta clientes potenciales, no regulación).
 
 Container Bronze: bronze-regulatorio
 
 Frecuencia:
-  Mensual    → normativa y regulación (cambia periódicamente)
-  Trimestral → políticas públicas e inversión (cambia lentamente)
+  Mensual    -> regulación + inversión + noticias (cambian periódicamente)
+  Trimestral -> financiamiento (convocatorias, cambian lentamente)
 """
 
 import os
@@ -46,7 +70,7 @@ CONN_STR         = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
 BRONZE_CONTAINER = "bronze-regulatorio"
 
 log  = logging.getLogger("ci.regulatorio")
-app  = func.FunctionApp()
+app = func.Blueprint()
 fc   = FirecrawlClient()
 news = NewsClient()
 
@@ -131,156 +155,181 @@ def _ingestar(
     }
 
 
-# ─────────────────────────────────────────────────────────────
-# INGESTORES
-# ─────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════
+# BLOQUE REGULATORIO
+# ═════════════════════════════════════════════════════════════
 
 def ingest_mintic() -> dict:
     """
-    MinTIC — normativa y políticas TI Colombia.
-    Detecta nuevas leyes, decretos y programas que afectan a TAK.
+    QUÉ HACE:  portal de MinTIC (inicio, noticias, sala de prensa).
+    PARA QUÉ:  KIN 2 — políticas públicas y programas del gobierno para el sector.
     Frecuencia: mensual.
     """
     urls = [
         "https://mintic.gov.co/portal/inicio/",
         "https://mintic.gov.co/portal/inicio/Noticias/",
-        "https://mintic.gov.co/portal/inicio/Normativa/",
         "https://mintic.gov.co/portal/inicio/Sala-de-Prensa/",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
-        fuente     = "web_mintic",
+        fuente     = "mintic",
         empresa    = "mintic",
         items_raw  = items_raw,
         source_url = "https://mintic.gov.co",
     )
 
 
+def ingest_normativa_tic() -> dict:
+    """
+    QUÉ HACE:  normograma de MinTIC — compilación normativa del sector TIC
+               (decretos, boletines jurídicos).
+    PARA QUÉ:  KIN 1 — regulaciones que pueden impactar la operación de TAK.
+
+    Reemplaza a la antigua normativa_legal: funcionpublica y suin-juriscol no
+    servían; normograma es el portal jurídico REAL y estructurado del sector TIC.
+    Frecuencia: mensual.
+    """
+    urls = [
+        "https://normograma.mintic.gov.co/mintic/",
+    ]
+    items_raw = fc.scrape_many(urls)
+    return _ingestar(
+        fuente     = "normativa_tic",
+        empresa    = "normativa_tic",
+        items_raw  = items_raw,
+        source_url = "https://normograma.mintic.gov.co",
+    )
+
+
+def ingest_sic_datos() -> dict:
+    """
+    QUÉ HACE:  Superintendencia de Industria y Comercio — protección de datos
+               personales (boletín jurídico + noticias).
+    PARA QUÉ:  KIN 1 — la SIC es la autoridad de datos/privacidad en Colombia
+               (Ley 1581 de 2012 / Hábeas Data). Vigila sanciones, circulares y
+               el proyecto de ley que actualiza el régimen.
+
+    Fuente añadida en la auditoría: antes no existía y es central para el KIN 1.
+    Frecuencia: mensual.
+    """
+    urls = [
+        "https://sedeelectronica.sic.gov.co/publicaciones/boletin-juridico/tema/Protecci%C3%B3n%20de%20Datos%20Personales",
+        "https://www.sic.gov.co/noticias",
+    ]
+    items_raw = fc.scrape_many(urls)
+    return _ingestar(
+        fuente     = "sic_datos",
+        empresa    = "SIC",
+        items_raw  = items_raw,
+        source_url = "https://www.sic.gov.co",
+    )
+
+
 def ingest_colombia_compra() -> dict:
     """
-    Colombia Compra Eficiente — regulación de compra pública.
-    TAK está en el Acuerdo Marco de Nube Pública — cambios aquí son críticos.
+    QUÉ HACE:  Colombia Compra Eficiente — regulación de compra pública.
+    PARA QUÉ:  KIN 1/2 — TAK está en el Acuerdo Marco de Nube Pública; los cambios
+               de reglas aquí impactan directo su operación con el Estado.
     Frecuencia: mensual.
     """
     urls = [
         "https://www.colombiacompra.gov.co/",
         "https://www.colombiacompra.gov.co/noticias",
-        "https://www.colombiacompra.gov.co/tienda-virtual-del-estado-colombiano",
         "https://www.colombiacompra.gov.co/normativa",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
-        fuente     = "web_colombia_compra",
+        fuente     = "colombia_compra",
         empresa    = "colombia_compra_eficiente",
         items_raw  = items_raw,
         source_url = "https://www.colombiacompra.gov.co",
     )
 
 
-def ingest_normativa_legal() -> dict:
-    """
-    Función Pública y Diario Oficial — leyes y decretos tech.
-    Detecta regulación que puede impactar operación de TAK.
-    Frecuencia: mensual.
-    """
-    urls = [
-        "https://www.funcionpublica.gov.co/normativa",
-        "https://www.suin-juriscol.gov.co/legislacion/decretos.html",
-        "https://www.mintic.gov.co/portal/inicio/Normativa/Decretos/",
-        "https://www.mintic.gov.co/portal/inicio/Normativa/Resoluciones/",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "normativa_legal",
-        empresa    = "gobierno_colombia",
-        items_raw  = items_raw,
-        source_url = "funcionpublica_mintic_normativa",
-    )
-
+# ═════════════════════════════════════════════════════════════
+# BLOQUE FINANCIERO
+# ═════════════════════════════════════════════════════════════
 
 def ingest_financiamiento_tech() -> dict:
     """
-    Fuentes de financiamiento e inversión tech en Colombia.
-    Detecta convocatorias, fondos y programas de apoyo a empresas TI.
+    QUÉ HACE:  convocatorias, productos de crédito y noticias de las entidades que
+               financian empresas/proyectos TI en Colombia.
+    PARA QUÉ:  KIN 4 (oportunidades: convocatorias iNNpulsa/Minciencias/MinTIC +
+               portafolio de crédito Bancóldex) y KIN 5 (condiciones de acceso:
+               noticias de iNNpulsa y Bancóldex sobre nuevas líneas/tasas).
     Frecuencia: trimestral.
+
+    NOTA: iNNpulsa y Bancóldex se reincorporaron con sus URLs REALES verificadas
+    (las rutas anteriores estaban mal, no las entidades).
     """
     urls = [
-        "https://www.innpulsacolombia.com/convocatorias",
-        "https://www.bancoldex.com/productos-y-servicios/financiacion",
+        # Convocatorias (KIN 4)
+        "https://convocatorias.innpulsacolombia.com/",
         "https://minciencias.gov.co/convocatorias",
         "https://www.mintic.gov.co/portal/inicio/Convocatorias/",
+        # Productos de crédito (KIN 4)
+        "https://www.bancoldex.com/portafolio-de-productos",
+        # Noticias / condiciones de acceso (KIN 5)
+        "https://www.innpulsacolombia.com/noticias/",
+        "https://www.bancoldex.com/sobre-bancoldex-0/noticias-1",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
         fuente     = "financiamiento_tech",
         empresa    = "fuentes_financiamiento",
         items_raw  = items_raw,
-        source_url = "innpulsa_bancoldex_minciencias_mintic",
+        source_url = "innpulsa_minciencias_mintic_bancoldex",
     )
 
 
 def ingest_inversion_tech() -> dict:
     """
-    Tendencias de inversión y venture capital en tech Colombia/Latam.
-    Incluye reportes financieros formales de inversión.
+    QUÉ HACE:  ecosistema de inversión/VC en tech Colombia/LatAm.
+    PARA QUÉ:  KIN 3/6 — tendencias de inversión e inversión de startups/competidores.
     Frecuencia: mensual.
+
+    NOTA: se quitaron idbinvest, bancoldex/publicaciones e innpulsa/publicaciones
+    (no cargaban, verificado). Quedan LatamList, Contxto y LAVCA.
     """
     urls = [
-        # Noticias y ecosistema VC
         "https://latamlist.com/colombia/",
         "https://www.contxto.com/es/colombia/",
         "https://lavca.org/industry-data/",
-        # Reportes financieros formales
         "https://lavca.org/research/",
-        "https://www.idbinvest.org/es/sectores/tecnologia",
-        "https://www.bancoldex.com/sobre-bancoldex/publicaciones-e-informes",
-        "https://innpulsacolombia.com/publicaciones",
     ]
     items_raw = fc.scrape_many(urls)
     return _ingestar(
         fuente     = "inversion_tech",
         empresa    = "ecosistema_inversion",
         items_raw  = items_raw,
-        source_url = "lavca_contxto_idb_bancoldex_innpulsa",
+        source_url = "latamlist_contxto_lavca",
     )
 
 
-def ingest_rss_regulatorio() -> dict:
+def ingest_noticias_regulatorio() -> dict:
     """
-    RSS de noticias regulatorias y económicas.
-    Detecta cambios normativos antes de que sean oficiales.
+    QUÉ HACE:  noticias de regulación e inversión tech vía Google News (por tema),
+               reutilizando news_client.buscar_noticias_empresa.
+    PARA QUÉ:  señal fresca transversal a los KIN 1..6. Reemplaza los RSS
+               hardcodeados (Portafolio/La República/Dinero), varios muertos.
     Frecuencia: mensual.
     """
-    import feedparser
-
-    feeds = {
-        "portafolio_regulacion": "https://www.portafolio.co/rss/feeds.xml",
-        "larepublica_economia":  "https://www.larepublica.co/rss/economia",
-        "enter_co":              "https://www.enter.co/feed/",
-    }
-
+    temas = [
+        "regulacion datos privacidad Colombia",
+        "politica publica tecnologia Colombia",
+        "inversion venture capital Colombia tecnologia",
+        "financiamiento startups tecnologia Colombia",
+    ]
     todos_items = []
-    for fuente_rss, url in feeds.items():
-        try:
-            feed = feedparser.parse(url)
-            for entry in feed.entries[:10]:
-                item = {
-                    "title":       entry.get("title", ""),
-                    "link":        entry.get("link", ""),
-                    "summary":     entry.get("summary", "")[:2000],
-                    "published":   entry.get("published", ""),
-                    "_fuente_rss": fuente_rss,
-                }
-                todos_items.append(item)
-        except Exception as ex:
-            log.error("RSS regulatorio error [%s]: %s", fuente_rss, ex)
-        time.sleep(1)
+    for tema in temas:
+        todos_items.extend(news.buscar_noticias_empresa(tema, limite=10))
+        news.throttle()
 
     return _ingestar(
-        fuente     = "rss_regulatorio",
+        fuente     = "noticias_regulatorio",
         empresa    = "mercado_colombia",
         items_raw  = todos_items,
-        source_url = "rss_portafolio_larepublica_enter",
+        source_url = "google_news:regulacion_inversion_colombia",
     )
 
 
@@ -288,13 +337,20 @@ def ingest_rss_regulatorio() -> dict:
 # MAPA DE FUENTES
 # ─────────────────────────────────────────────────────────────
 FUENTES = {
-    "mintic":              ingest_mintic,
-    "colombia_compra":     ingest_colombia_compra,
-    "normativa_legal":     ingest_normativa_legal,
-    "financiamiento_tech": ingest_financiamiento_tech,
-    "inversion_tech":      ingest_inversion_tech,
-    "rss_regulatorio":     ingest_rss_regulatorio,
+    "mintic":                ingest_mintic,
+    "normativa_tic":         ingest_normativa_tic,
+    "sic_datos":             ingest_sic_datos,
+    "colombia_compra":       ingest_colombia_compra,
+    "financiamiento_tech":   ingest_financiamiento_tech,
+    "inversion_tech":        ingest_inversion_tech,
+    "noticias_regulatorio":  ingest_noticias_regulatorio,
 }
+
+# Del timer mensual (financiamiento va en el trimestral)
+FUENTES_MENSUAL = [
+    "mintic", "normativa_tic", "sic_datos", "colombia_compra",
+    "inversion_tech", "noticias_regulatorio",
+]
 
 
 def _ensure_tables():
@@ -310,15 +366,13 @@ def _ensure_tables():
 
 @app.timer_trigger(schedule="0 0 14 1 * *", arg_name="timer", run_on_startup=False)
 def timer_regulatorio_mensual(timer: func.TimerRequest) -> None:
-    """MinTIC + CCE + normativa + RSS + inversión — día 1 de cada mes 9am Colombia."""
+    """Regulación + inversión + noticias — día 1 de cada mes 9am Colombia."""
     _ensure_tables()
-    r1 = ingest_mintic()
-    r2 = ingest_colombia_compra()
-    r3 = ingest_normativa_legal()
-    r4 = ingest_rss_regulatorio()
-    r5 = ingest_inversion_tech()
-    log.info("Regulatorio mensual: mintic=%s cce=%s norm=%s rss=%s inv=%s",
-             r1, r2, r3, r4, r5)
+    resumen = {}
+    for nombre_f in FUENTES_MENSUAL:
+        resumen[nombre_f] = FUENTES[nombre_f]()
+        time.sleep(2)
+    log.info("Regulatorio mensual: %s", resumen)
 
 
 @app.timer_trigger(schedule="0 0 14 1 1,4,7,10 *", arg_name="timer", run_on_startup=False)
@@ -334,9 +388,9 @@ def timer_regulatorio_trimestral(timer: func.TimerRequest) -> None:
 # ─────────────────────────────────────────────────────────────
 
 @app.route(route="regulatorio/ejecutar", methods=["GET", "POST"])
-def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
+def ejecutar_regulatorio(req: func.HttpRequest) -> func.HttpResponse:
     """
-    GET /api/regulatorio/ejecutar?fuente=mintic
+    GET /api/regulatorio/ejecutar?fuente=sic_datos
     GET /api/regulatorio/ejecutar?fuente=todas
     """
     _ensure_tables()
@@ -366,10 +420,10 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="regulatorio/status", methods=["GET"])
-def status(req: func.HttpRequest) -> func.HttpResponse:
+def status_regulatorio(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/regulatorio/status
-    GET /api/regulatorio/status?fuente=web_mintic
+    GET /api/regulatorio/status?fuente=sic_datos
     GET /api/regulatorio/status?modo=blobs
     """
     fuente = req.params.get("fuente", "")
@@ -407,8 +461,8 @@ def status(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="regulatorio/reset_cursor", methods=["POST"])
-def reset(req: func.HttpRequest) -> func.HttpResponse:
-    """POST /api/regulatorio/reset_cursor?fuente=web_mintic&empresa=mintic"""
+def reset_regulatorio(req: func.HttpRequest) -> func.HttpResponse:
+    """POST /api/regulatorio/reset_cursor?fuente=sic_datos&empresa=SIC"""
     fuente  = req.params.get("fuente", "")
     empresa = req.params.get("empresa", "")
     if not fuente or not empresa:

@@ -3,23 +3,40 @@ ingestion_tendencias/function_tendencias.py
 ===========================================
 Azure Function — KIT 3: Tendencias tecnológicas e innovación
 
+KIN que responde:
+  1. Tecnologías emergentes en el sector        -> GitHub + RSS + docs + eventos
+  2. Tecnologías siendo adoptadas               -> RSS + ThoughtWorks Radar + docs
+  3. Nivel de adopción en el mercado            -> GitHub trending + RSS Colombia
+  4. Áreas con mayor inversión                  -> noticias/reportes (señal parcial)
+  5. Innovaciones registradas por patentes      -> patentes_tech (Gaceta SIC + News)
+
 Fuentes Bronze:
-  1. GitHub API     → repositorios trending por tecnología (Oracle, Snowflake, cloud)
-  2. RSS Fabricantes → blogs Oracle, Snowflake, Red Hat — novedades de proveedores TAK
-  3. RSS Tech general → TechCrunch, InfoQ, The New Stack — tendencias globales
-  4. RSS Colombia    → Platzi, MinTIC — tendencias tech Colombia/Latam
-  5. Firecrawl       → Gartner blog, reportes sectoriales tech
+  1. github_trending        — repos trending por tecnología (API GitHub)
+  2. rss_fabricantes        — blogs Oracle/Snowflake/Red Hat (RSS + Firecrawl respaldo)
+  3. rss_tech_general       — TechCrunch, InfoQ, The New Stack (RSS)
+  4. rss_colombia           — enter.co, ITNow LatAm (RSS)
+  5. reportes_sectoriales   — ThoughtWorks Radar, AWS blog, Oracle News (Firecrawl)
+  6. documentacion_tecnica  — release notes Oracle/Snowflake/Red Hat (Firecrawl)
+  7. eventos_tech           — Eventbrite + eventos Oracle/Snowflake (Firecrawl)
+  8. patentes_tech          — Gaceta SIC + Google News patentes (KIN 5) [NUEVO]
+  9. redes_sociales_tech    — X/Twitter [OPCIONAL, solo HTTP]
+
+Cambios de la auditoría:
+  - Eliminado Gartner cloud-strategy de reportes_sectoriales: página de pago que
+    solo devuelve marketing (verificado) -> no responde ningún KIN.
+  - Eliminado Meetup Bogotá de eventos_tech: página de búsqueda JS de bajo rendimiento.
+  - redes_sociales_tech movido FUERA del timer diario (Apify a diario era costoso);
+    queda disponible por HTTP.
+  - AÑADIDO patentes_tech (KIN 5): cobertura PARCIAL y honesta — la búsqueda
+    granular de la SIC es un formulario no scrapeable; se ingiere el índice de la
+    Gaceta + noticias de patentes. Limitación documentada de alcance.
+  - Docstring de rss_colombia corregido (feeds reales: enter.co / ITNow, no Platzi/MinTIC).
 
 Container Bronze: bronze-tendencias
 
 Triggers:
-  Diario  → GitHub trending + RSS fabricantes (alta volatilidad)
-  Semanal → RSS tech general + RSS Colombia + Firecrawl reportes
-
-Relevancia para TAK:
-  TAK necesita saber por qué las empresas se están cambiando de Microsoft a AWS,
-  qué tecnologías están emergiendo, y cuándo Oracle o Snowflake lanzan algo nuevo
-  que les permita ampliar su portafolio.
+  Diario  -> GitHub trending + RSS fabricantes (alta volatilidad)
+  Semanal -> RSS tech general + RSS Colombia + reportes + docs + eventos + patentes
 """
 
 import os
@@ -50,7 +67,7 @@ CONN_STR         = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
 BRONZE_CONTAINER = "bronze-tendencias"
 
 log    = logging.getLogger("ci.tendencias")
-app    = func.FunctionApp()
+app = func.Blueprint()
 github = GitHubClient()
 news   = NewsClient()
 fc     = FirecrawlClient()
@@ -123,7 +140,7 @@ def _ingestar(
         items_new     = len(blob_paths),
         items_skipped = delta.items_skipped + errores,
         batch_hash    = delta.batch_hash,
-        blob_paths    = blob_paths[:20],  # máximo 20 paths para no exceder 64KB en Table Storage
+        blob_paths    = blob_paths[:20],
         error_msg     = f"{errores} items fallaron" if errores else None,
     )
 
@@ -137,17 +154,15 @@ def _ingestar(
 
 
 # ─────────────────────────────────────────────────────────────
-# INGESTORES
+# INGESTORES — timer
 # ─────────────────────────────────────────────────────────────
 
 def ingest_github_trending() -> dict:
     """
-    Repositorios trending en GitHub para tecnologías del portafolio TAK.
-
-    Detecta qué proyectos open source están ganando tracción en:
-    Oracle, Snowflake, Kubernetes, cloud migration, data warehouse, etc.
-
-    Frecuencia: diaria — GitHub cambia rápido.
+    QUÉ HACE:  repos trending en GitHub para tecnologías del portafolio TAK.
+    PARA QUÉ:  KIN 1/3 — proyectos open source ganando tracción = tecnologías
+               emergentes y su nivel de adopción.
+    Frecuencia: diaria.
     """
     items_raw = github.get_trending_all_topics(dias=30, limite=5)
     return _ingestar(
@@ -160,14 +175,12 @@ def ingest_github_trending() -> dict:
 
 def ingest_rss_fabricantes() -> dict:
     """
-    Blogs oficiales de Oracle, Snowflake y Red Hat — proveedores core de TAK.
-    RSS donde está disponible, Firecrawl como respaldo.
+    QUÉ HACE:  blogs oficiales de Oracle/Snowflake/Red Hat (RSS + Firecrawl respaldo).
+    PARA QUÉ:  KIN 1/2 — novedades de producto de los fabricantes core.
     Frecuencia: diaria.
     """
-    # RSS de fabricantes
     items_rss = news.get_feeds_by_group("fabricantes", limite=10)
 
-    # Firecrawl como respaldo para Oracle y Snowflake
     urls_fabricantes = [
         "https://blogs.oracle.com/cloud-infrastructure/",
         "https://www.snowflake.com/blog/",
@@ -186,9 +199,8 @@ def ingest_rss_fabricantes() -> dict:
 
 def ingest_rss_tech_general() -> dict:
     """
-    TechCrunch, InfoQ, The New Stack — tendencias tech globales.
-
-    Detecta tendencias antes de que lleguen al mercado colombiano.
+    QUÉ HACE:  TechCrunch, InfoQ, The New Stack — tendencias tech globales.
+    PARA QUÉ:  KIN 1 — tecnologías emergentes antes de que lleguen a Colombia.
     Frecuencia: semanal.
     """
     items_raw = news.get_feeds_by_group("tech_general", limite=10)
@@ -202,11 +214,8 @@ def ingest_rss_tech_general() -> dict:
 
 def ingest_rss_colombia() -> dict:
     """
-    Platzi Blog y MinTIC — tendencias tech Colombia/Latam.
-
-    Detecta qué tecnologías están adoptando las empresas colombianas
-    y qué políticas tech está promoviendo el gobierno.
-
+    QUÉ HACE:  feeds tech Colombia/LatAm (enter.co, ITNow LatAm).
+    PARA QUÉ:  KIN 2/3 — qué tecnologías adopta el mercado colombiano.
     Frecuencia: semanal.
     """
     items_raw = news.get_feeds_by_group("colombia", limite=10)
@@ -214,21 +223,19 @@ def ingest_rss_colombia() -> dict:
         fuente     = "rss_colombia",
         empresa    = "mercado_colombia",
         items_raw  = items_raw,
-        source_url = "rss_platzi_mintic",
+        source_url = "rss_enterco_itnow",
     )
 
 
 def ingest_reportes_sectoriales() -> dict:
     """
-    Reportes y blogs tech de referencia — vía Firecrawl.
-
-    Gartner blog, ThoughtWorks Technology Radar, AWS blog.
-    Detecta tendencias estructurales del mercado tech.
-
+    QUÉ HACE:  ThoughtWorks Technology Radar + AWS Database blog + Oracle News.
+    PARA QUÉ:  KIN 1/2 — tendencias estructurales y adopción (el Radar clasifica
+               tecnologías en adopt/trial/assess).
+    NOTA: se eliminó Gartner (página de pago que solo devuelve marketing).
     Frecuencia: semanal.
     """
     urls = [
-        "https://www.gartner.com/en/information-technology/insights/cloud-strategy",
         "https://www.thoughtworks.com/radar",
         "https://aws.amazon.com/blogs/database/",
         "https://www.oracle.com/news/",
@@ -238,18 +245,105 @@ def ingest_reportes_sectoriales() -> dict:
         fuente     = "reportes_sectoriales",
         empresa    = "mercado_global",
         items_raw  = items_raw,
-        source_url = "gartner_thoughtworks_aws_oracle",
+        source_url = "thoughtworks_aws_oracle",
     )
 
 
+def ingest_documentacion_tecnica() -> dict:
+    """
+    QUÉ HACE:  documentación/release notes de Oracle/Snowflake/Red Hat.
+    PARA QUÉ:  KIN 1/2 — nuevas features y versiones de las tecnologías que TAK
+               implementa.
+    Frecuencia: semanal.
+    """
+    urls = [
+        "https://docs.oracle.com/en/database/oracle/oracle-database/",
+        "https://docs.snowflake.com/en/release-notes",
+        "https://docs.redhat.com/en/documentation",
+        "https://www.oracle.com/cloud/what-is-cloud-computing/",
+    ]
+    items_raw = fc.scrape_many(urls)
+    return _ingestar(
+        fuente     = "documentacion_tecnica",
+        empresa    = "fabricantes_tak",
+        items_raw  = items_raw,
+        source_url = "docs_oracle_snowflake_redhat",
+    )
+
+
+def ingest_eventos_tech() -> dict:
+    """
+    QUÉ HACE:  eventos/conferencias tech (Eventbrite Colombia + eventos Oracle/Snowflake).
+    PARA QUÉ:  KIN 1 — tecnologías emergentes presentadas en eventos del sector.
+    NOTA: se eliminó Meetup Bogotá (página de búsqueda JS de bajo rendimiento).
+    Frecuencia: semanal.
+    """
+    urls = [
+        "https://www.eventbrite.com/d/colombia--bogot%C3%A1/technology/",
+        "https://oracle.com/events/",
+        "https://www.snowflake.com/events/",
+    ]
+    items_raw = fc.scrape_many(urls)
+    return _ingestar(
+        fuente     = "eventos_tech",
+        empresa    = "mercado_colombia",
+        items_raw  = items_raw,
+        source_url = "eventbrite_oracle_snowflake_events",
+    )
+
+
+def ingest_patentes_tech() -> dict:
+    """
+    QUÉ HACE:  KIN 5 — señal de innovaciones registradas por patentes.
+               (a) Índice de la Gaceta de Propiedad Industrial de la SIC (Firecrawl)
+               (b) Google News de patentes tecnológicas en Colombia
+    PARA QUÉ:  KIN 5 — innovaciones registradas mediante patentes en la industria.
+
+    ⚠️ COBERTURA PARCIAL (limitación documentada):
+       La búsqueda granular de patentes de la SIC es un FORMULARIO dinámico
+       (serviciospub2.sic.gov.co) que Firecrawl no puede consultar ni paginar.
+       Por eso se ingiere el índice de la Gaceta (detecta nuevas publicaciones) y
+       noticias de patentes, NO el catálogo completo de patentes. El detalle
+       granular quedaría como consulta manual / fuera del alcance automatizable.
+
+    Frecuencia: semanal (las patentes se publican por gaceta, sin urgencia).
+    """
+    # (a) Índice de la Gaceta / patentes SIC
+    urls_sic = [
+        "https://www.sic.gov.co/gaceta-oficial-de-la-propiedad-industrial",
+        "https://www.sic.gov.co/patentes",
+    ]
+    items_sic = fc.scrape_many(urls_sic)
+
+    # (b) Noticias de patentes tecnológicas
+    temas = [
+        "patentes tecnologia Colombia",
+        "patente software Colombia",
+        "propiedad industrial tecnologia Colombia",
+    ]
+    items_news = []
+    for tema in temas:
+        items_news.extend(news.buscar_noticias_empresa(tema, limite=10))
+        news.throttle()
+
+    todos = items_sic + items_news
+    return _ingestar(
+        fuente     = "patentes_tech",
+        empresa    = "innovacion_colombia",
+        items_raw  = todos,
+        source_url = "sic_gaceta + google_news:patentes_colombia",
+    )
+
+
+# ─────────────────────────────────────────────────────────────
+# INGESTOR — opcional (solo HTTP, fuera del timer)
+# ─────────────────────────────────────────────────────────────
+
 def ingest_redes_sociales_tech() -> dict:
     """
-    X/Twitter — hashtags tech relevantes para TAK.
-
-    Detecta conversaciones sobre Oracle, Snowflake, cloud, migración
-    y tecnologías emergentes en tiempo real.
-
-    Frecuencia: diaria — alta volatilidad.
+    QUÉ HACE:  X/Twitter — hashtags tech relevantes para TAK.
+    ⚠️ OPCIONAL — antes corría a DIARIO con Apify (costoso y ruidoso). Sacado del
+       timer; queda por HTTP (?fuente=redes_sociales_tech) para evaluar.
     """
     from shared.apify_client import ApifyClient, ACTOR_X
 
@@ -285,54 +379,6 @@ def ingest_redes_sociales_tech() -> dict:
     )
 
 
-def ingest_documentacion_tecnica() -> dict:
-    """
-    Documentación oficial de Oracle, Snowflake y Red Hat — vía Firecrawl.
-
-    Detecta nuevas features, versiones y cambios en las tecnologías
-    que TAK implementa. Crítico para mantenerse actualizado.
-
-    Frecuencia: semanal.
-    """
-    urls = [
-        "https://docs.oracle.com/en/database/oracle/oracle-database/",
-        "https://docs.snowflake.com/en/release-notes",
-        "https://docs.redhat.com/en/documentation",
-        "https://www.oracle.com/cloud/what-is-cloud-computing/",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "documentacion_tecnica",
-        empresa    = "fabricantes_tak",
-        items_raw  = items_raw,
-        source_url = "docs_oracle_snowflake_redhat",
-    )
-
-
-def ingest_eventos_tech() -> dict:
-    """
-    Eventos y conferencias tech Colombia — vía Firecrawl.
-
-    Detecta webinars, conferencias y meetups donde se presentan
-    tecnologías emergentes relevantes para TAK.
-
-    Frecuencia: semanal.
-    """
-    urls = [
-        "https://www.meetup.com/es/cities/co/bogota/tech/",
-        "https://www.eventbrite.com/d/colombia--bogot%C3%A1/technology/",
-        "https://oracle.com/events/",
-        "https://www.snowflake.com/events/",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "eventos_tech",
-        empresa    = "mercado_colombia",
-        items_raw  = items_raw,
-        source_url = "eventos_tech_colombia",
-    )
-
-
 # ─────────────────────────────────────────────────────────────
 # MAPA DE FUENTES
 # ─────────────────────────────────────────────────────────────
@@ -342,9 +388,11 @@ FUENTES = {
     "rss_tech_general":      ingest_rss_tech_general,
     "rss_colombia":          ingest_rss_colombia,
     "reportes_sectoriales":  ingest_reportes_sectoriales,
-    "redes_sociales_tech":   ingest_redes_sociales_tech,
     "documentacion_tecnica": ingest_documentacion_tecnica,
     "eventos_tech":          ingest_eventos_tech,
+    "patentes_tech":         ingest_patentes_tech,
+    # opcional (solo HTTP)
+    "redes_sociales_tech":   ingest_redes_sociales_tech,
 }
 
 
@@ -361,25 +409,25 @@ def _ensure_tables():
 
 @app.timer_trigger(schedule="0 0 12 * * *", arg_name="timer", run_on_startup=False)
 def timer_tendencias_diario(timer: func.TimerRequest) -> None:
-    """GitHub + RSS fabricantes + redes sociales tech — diario 7:00am Colombia."""
+    """GitHub + RSS fabricantes — diario 7:00am Colombia. (Redes ya no va aquí.)"""
     _ensure_tables()
     r1 = ingest_github_trending()
     r2 = ingest_rss_fabricantes()
-    r3 = ingest_redes_sociales_tech()
-    log.info("Tendencias diario: github=%s fabricantes=%s redes=%s", r1, r2, r3)
+    log.info("Tendencias diario: github=%s fabricantes=%s", r1, r2)
 
 
 @app.timer_trigger(schedule="0 0 13 * * 2", arg_name="timer", run_on_startup=False)
 def timer_tendencias_semanal(timer: func.TimerRequest) -> None:
-    """RSS tech + Colombia + reportes + docs + eventos — martes 8:00am Colombia."""
+    """RSS tech + Colombia + reportes + docs + eventos + patentes — martes 8am Colombia."""
     _ensure_tables()
     r1 = ingest_rss_tech_general()
     r2 = ingest_rss_colombia()
     r3 = ingest_reportes_sectoriales()
     r4 = ingest_documentacion_tecnica()
     r5 = ingest_eventos_tech()
-    log.info("Tendencias semanal: tech=%s col=%s rep=%s doc=%s ev=%s",
-             r1, r2, r3, r4, r5)
+    r6 = ingest_patentes_tech()
+    log.info("Tendencias semanal: tech=%s col=%s rep=%s doc=%s ev=%s pat=%s",
+             r1, r2, r3, r4, r5, r6)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -387,10 +435,11 @@ def timer_tendencias_semanal(timer: func.TimerRequest) -> None:
 # ─────────────────────────────────────────────────────────────
 
 @app.route(route="tendencias/ejecutar", methods=["GET", "POST"])
-def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
+def ejecutar_tendencias(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/tendencias/ejecutar?fuente=github_trending
     GET /api/tendencias/ejecutar?fuente=todas
+    GET /api/tendencias/ejecutar?fuente=redes_sociales_tech   (opcional)
     """
     _ensure_tables()
     fuente = req.params.get("fuente", "").lower()
@@ -403,9 +452,13 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
             status_code=400, mimetype="application/json",
         )
 
-    resultados = []
-    targets    = FUENTES.items() if fuente == "todas" else [(fuente, FUENTES[fuente])]
+    # 'todas' = todas menos la opcional de redes
+    if fuente == "todas":
+        targets = [(n, f) for n, f in FUENTES.items() if n != "redes_sociales_tech"]
+    else:
+        targets = [(fuente, FUENTES[fuente])]
 
+    resultados = []
     for nombre_f, fn in targets:
         log.info("Manual tendencias: ejecutando %s", nombre_f)
         res = fn()
@@ -419,7 +472,7 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="tendencias/status", methods=["GET"])
-def status(req: func.HttpRequest) -> func.HttpResponse:
+def status_tendencias(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/tendencias/status
     GET /api/tendencias/status?fuente=github_trending
@@ -460,7 +513,7 @@ def status(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="tendencias/reset_cursor", methods=["POST"])
-def reset(req: func.HttpRequest) -> func.HttpResponse:
+def reset_tendencias(req: func.HttpRequest) -> func.HttpResponse:
     """POST /api/tendencias/reset_cursor?fuente=github_trending&empresa=mercado_global"""
     fuente  = req.params.get("fuente", "")
     empresa = req.params.get("empresa", "")

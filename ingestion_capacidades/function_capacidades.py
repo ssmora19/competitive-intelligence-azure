@@ -1,4 +1,43 @@
+"""
+ingestion_capacidades/function_capacidades.py
+=============================================
+Azure Function — KIT 7: Capacidades internas y talento humano
 
+KIN que responde:
+  1. ¿Nivel del talento técnico de TAK frente a las exigencias del mercado?
+        -> interno (web/LinkedIn TAK) + mercado (LinkedIn Jobs). Gap = Gold.
+  2. ¿Qué tan preparada está TAK para adoptar nuevas tecnologías?
+        -> web TAK (tecnologías/partners) + certificaciones disponibles (referencia).
+  3. ¿Qué capacidades de innovación tiene TAK?
+        -> web TAK (servicios, casos, industrias).
+  4. ¿Qué tan rápida es la adaptación al cambio?
+        -> INTERNO/CUALITATIVO (cultura, RRHH, desempeño): NO automatizable por web.
+
+Fuentes Bronze:
+  1. web_tak                     -> lo que TAK declara de sí mismo   (KIN 1,2,3)
+  2. demanda_perfiles_ti         -> lo que el mercado pide (baseline) (KIN 1)
+  3. certificaciones_fabricantes -> certificaciones disponibles (ref) (KIN 2)
+
+Fuentes NO automatizables (requieren datos internos de TAK — no van en Bronze):
+  - Evaluaciones de desempeño, auditorías internas, cultura, RRHH  (KIN 4).
+  - Certificaciones que YA tiene el equipo de TAK: vendrían de los perfiles
+    LinkedIn de empleados, pero scrapear perfiles personales es sensible por
+    privacidad -> se deja fuera; se puede levantar como dato interno manual.
+
+Cambios de la auditoría (enfoque + bugs):
+  - Eliminado benchmarking_capacidades: era data de COMPETIDORES (su lugar es
+    el KIT de competidores, donde SETI/Cetus/Iteria/Bmind ya están en
+    companies.json). Además incluía a Comware, que es CLIENTE (clientes.json).
+  - Eliminado portales_empleo_ti: redundante con LinkedIn Jobs (misma señal de
+    demanda de mercado) y con URLs de formato dudoso.
+  - Eliminado el import muerto ACTOR_X (no se usaba).
+  - Corregido source_url de web_tak (antes decía tak.com.co; scrapea takcolombia.com.co).
+  - Docstrings reescritos (QUÉ HACE / PARA QUÉ): el viejo decía que benchmarking
+    "compara" capacidades, pero Bronze no compara — eso es Gold.
+
+Container Bronze: bronze-capacidades
+Frecuencia: trimestral — las capacidades cambian lentamente.
+"""
 
 import os
 import sys
@@ -10,7 +49,7 @@ import azure.functions as func
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from shared.apify_client     import ApifyClient, ACTOR_X
+from shared.apify_client     import ApifyClient
 from shared.firecrawl_client import FirecrawlClient
 from shared.storage          import save_bronze, list_recent_blobs
 from shared.state_manager    import (
@@ -19,15 +58,21 @@ from shared.state_manager    import (
 )
 from shared.logger           import IngestLogger, get_last_runs
 
-
+# ─────────────────────────────────────────────────────────────
+# CONFIGURACIÓN
+# ─────────────────────────────────────────────────────────────
 CONN_STR         = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
 BRONZE_CONTAINER = "bronze-capacidades"
 
 log   = logging.getLogger("ci.capacidades")
-app   = func.FunctionApp()
+app = func.Blueprint()
 fc    = FirecrawlClient()
 apify = ApifyClient()
 
+
+# ─────────────────────────────────────────────────────────────
+# ORQUESTADOR DELTA
+# ─────────────────────────────────────────────────────────────
 
 def _ingestar(
     fuente:     str,
@@ -105,8 +150,50 @@ def _ingestar(
     }
 
 
-def ingest_demanda_perfiles_ti() -> dict:
+# ─────────────────────────────────────────────────────────────
+# INGESTORES
+# ─────────────────────────────────────────────────────────────
 
+def ingest_web_tak() -> dict:
+    """
+    QUÉ HACE:  scrapea la web pública de TAK (portafolio, servicios, industrias,
+               compañía, recursos, soporte) y su página de LinkedIn.
+    PARA QUÉ:  KIN 1/2/3 — capacidades que TAK DECLARA de sí mismo: servicios,
+               tecnologías/partners (preparación) y casos/industrias (innovación).
+
+    NOTA: LinkedIn bloquea scraping; puede devolver poco o un muro de login. El
+    filtro de statusCode del firecrawl_client descarta lo que no sea 200.
+
+    Frecuencia: trimestral.
+    """
+    urls = [
+        "https://takcolombia.com.co/",
+        "https://takcolombia.com.co/servicios.html",
+        "https://takcolombia.com.co/industrias.html",
+        "https://takcolombia.com.co/compania.html",
+        "https://takcolombia.com.co/recursos.html",
+        "https://takcolombia.com.co/soporte.html",
+        "https://www.linkedin.com/company/tak-colombia/",
+    ]
+    items_raw = fc.scrape_many(urls)
+    return _ingestar(
+        fuente     = "web_tak",
+        empresa    = "TAK",
+        items_raw  = items_raw,
+        source_url = "https://takcolombia.com.co/",
+    )
+
+
+def ingest_demanda_perfiles_ti() -> dict:
+    """
+    QUÉ HACE:  busca en LinkedIn Jobs (Apify) los perfiles TI que demanda el
+               mercado colombiano en las tecnologías del portafolio de TAK.
+    PARA QUÉ:  KIN 1 — es la BASELINE de mercado contra la cual Gold comparará
+               las capacidades internas de TAK (el "gap"). NO son capacidades de
+               TAK: es lo que el mercado pide. Por eso empresa = mercado_colombia.
+
+    Frecuencia: trimestral.
+    """
     keywords = [
         "Oracle DBA Colombia",
         "Snowflake Engineer Colombia",
@@ -122,11 +209,7 @@ def ingest_demanda_perfiles_ti() -> dict:
     for keyword in keywords:
         items = apify.run_actor(
             "valig~linkedin-jobs-scraper",
-            {
-                "keywords": keyword,
-                "location": "Colombia",
-                "limit":    5,
-            }
+            {"keywords": keyword, "location": "Colombia", "limit": 5},
         )
         for item in items:
             item["_keyword_buscada"] = keyword
@@ -134,45 +217,29 @@ def ingest_demanda_perfiles_ti() -> dict:
         apify.throttle()
 
     return _ingestar(
-        fuente     = "linkedin_jobs_perfiles",
+        fuente     = "demanda_perfiles_ti",
         empresa    = "mercado_colombia",
         items_raw  = todos_items,
         source_url = "https://www.linkedin.com/jobs/",
     )
 
 
-def ingest_web_tak() -> dict:
-
-    urls = [
-        "https://takcolombia.com.co/",
-        "https://takcolombia.com.co/servicios/",
-        "https://takcolombia.com.co/nosotros/",
-        "https://takcolombia.com.co/soluciones/",
-        "https://www.linkedin.com/company/tech-knowledge-tak/",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "web_tak",
-        empresa    = "TAK",
-        items_raw  = items_raw,
-        source_url = "https://tak.com.co",
-    )
-
-
 def ingest_certificaciones_fabricantes() -> dict:
+    """
+    QUÉ HACE:  scrapea los programas de certificación de los fabricantes partners
+               de TAK (Oracle, Red Hat, Microsoft, IBM).
+    PARA QUÉ:  KIN 2 (referencia) — el universo de certificaciones DISPONIBLES en
+               el stack de TAK, contra el cual medir su preparación. Es contexto,
+               NO las certificaciones que el equipo de TAK ya tiene (eso sería
+               dato interno / perfiles de empleados, fuera de Bronze).
 
+    Frecuencia: trimestral.
+    """
     urls = [
-        # Oracle Certification
         "https://education.oracle.com/certification",
         "https://education.oracle.com/es/oracle-certification-program",
-
-        # Red Hat Certification
         "https://www.redhat.com/es/services/certification",
-
-        # Microsoft Certification
         "https://learn.microsoft.com/es-co/certifications/",
-
-        # IBM Certification
         "https://www.ibm.com/training/credentials",
     ]
     items_raw = fc.scrape_many(urls)
@@ -184,48 +251,13 @@ def ingest_certificaciones_fabricantes() -> dict:
     )
 
 
-def ingest_portales_empleo_ti() -> dict:
-
-    urls = [
-        "https://www.elempleo.com/co/ofertas-empleo/oracle",
-        "https://www.elempleo.com/co/ofertas-empleo/snowflake",
-        "https://www.computrabajo.com.co/ofertas-de-trabajo/oracle",
-        "https://www.computrabajo.com.co/ofertas-de-trabajo/infraestructura-ti",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "portales_empleo_ti",
-        empresa    = "mercado_colombia",
-        items_raw  = items_raw,
-        source_url = "elempleo_computrabajo_colombia",
-    )
-
-
-def ingest_benchmarking_capacidades() -> dict:
-
-    urls = [
-        "https://seti.com.co/servicios/",
-        "https://www.comware.com.co/servicios/",
-        "https://cetus.com.co/servicios/",
-        "https://iteria.com.co/servicios/",
-        "https://www.bmind.com/servicios/",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "benchmarking_capacidades",
-        empresa    = "competidores_locales",
-        items_raw  = items_raw,
-        source_url = "seti_comware_cetus_iteria_bmind",
-    )
-
-
-
+# ─────────────────────────────────────────────────────────────
+# MAPA DE FUENTES
+# ─────────────────────────────────────────────────────────────
 FUENTES = {
-    "demanda_perfiles_ti":       ingest_demanda_perfiles_ti,
-    "web_tak":                   ingest_web_tak,
+    "web_tak":                     ingest_web_tak,
+    "demanda_perfiles_ti":         ingest_demanda_perfiles_ti,
     "certificaciones_fabricantes": ingest_certificaciones_fabricantes,
-    "portales_empleo_ti":        ingest_portales_empleo_ti,
-    "benchmarking_capacidades":  ingest_benchmarking_capacidades,
 }
 
 
@@ -236,23 +268,29 @@ def _ensure_tables():
         log.warning("Tablas de control: %s", ex)
 
 
+# ─────────────────────────────────────────────────────────────
+# TRIGGERS — Timer (trimestral)
+# ─────────────────────────────────────────────────────────────
 
 @app.timer_trigger(schedule="0 0 14 1 1,4,7,10 *", arg_name="timer", run_on_startup=False)
 def timer_capacidades_trimestral(timer: func.TimerRequest) -> None:
-
+    """
+    Todas las fuentes — trimestral (1 ene, 1 abr, 1 jul, 1 oct) 9am Colombia.
+    Las capacidades cambian lentamente — trimestral es suficiente.
+    """
     _ensure_tables()
-    # LinkedIn Jobs usa Apify — se ejecuta siempre
-    r1 = ingest_demanda_perfiles_ti()
-    r2 = ingest_web_tak()
+    r1 = ingest_web_tak()
+    r2 = ingest_demanda_perfiles_ti()
     r3 = ingest_certificaciones_fabricantes()
-    r4 = ingest_portales_empleo_ti()
-    r5 = ingest_benchmarking_capacidades()
-    log.info("Capacidades trimestral: perfiles=%s tak=%s cert=%s empleo=%s bench=%s",
-             r1, r2, r3, r4, r5)
+    log.info("Capacidades trimestral: tak=%s demanda=%s cert=%s", r1, r2, r3)
 
+
+# ─────────────────────────────────────────────────────────────
+# HTTP TRIGGERS
+# ─────────────────────────────────────────────────────────────
 
 @app.route(route="capacidades/ejecutar", methods=["GET", "POST"])
-def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
+def ejecutar_capacidades(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/capacidades/ejecutar?fuente=web_tak
     GET /api/capacidades/ejecutar?fuente=todas
@@ -284,7 +322,7 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="capacidades/status", methods=["GET"])
-def status(req: func.HttpRequest) -> func.HttpResponse:
+def status_capacidades(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/capacidades/status
     GET /api/capacidades/status?fuente=web_tak
@@ -325,7 +363,7 @@ def status(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="capacidades/reset_cursor", methods=["POST"])
-def reset(req: func.HttpRequest) -> func.HttpResponse:
+def reset_capacidades(req: func.HttpRequest) -> func.HttpResponse:
     """POST /api/capacidades/reset_cursor?fuente=web_tak&empresa=TAK"""
     fuente  = req.params.get("fuente", "")
     empresa = req.params.get("empresa", "")

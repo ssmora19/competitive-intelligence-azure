@@ -1,6 +1,6 @@
 """
 shared/github_client.py
-=======================
+
 Cliente para GitHub API — tendencias tecnológicas.
 
 Endpoints usados:
@@ -52,8 +52,8 @@ class GitHubClient:
         self._token    = token or GITHUB_TOKEN
         self._throttle = throttle
         self._headers  = {
-            "Accept":     "application/vnd.github.v3+json",
-            "User-Agent": "TAK-InteligenciaCompetitiva/1.0",
+            "Accept":     "application/vnd.github.v3+json", #la versión de la API de GitHub que se va a usar
+            "User-Agent": "TAK-InteligenciaCompetitiva/1.0", #el agente de usuario para identificar la aplicación
         }
         if self._token:
             self._headers["Authorization"] = f"Bearer {self._token}"
@@ -89,12 +89,12 @@ class GitHubClient:
         Incluye: nombre, descripción, stars, forks, lenguaje, URL.
         """
         fecha_desde = (
-            datetime.now(timezone.utc) - timedelta(days=dias)
+            datetime.now(timezone.utc) - timedelta(days=dias) #calcula la fecha desde la cual se van a buscar los repositorios, restando los días especificados a la fecha actual
         ).strftime("%Y-%m-%d")
 
         data = self._get("/search/repositories", params={
-            "q":     f"topic:{topic} stars:>={min_stars} pushed:>={fecha_desde}",
-            "sort":  "stars",
+            "q":     f"topic:{topic} stars:>={min_stars} pushed:>={fecha_desde}", #busca repositorios con el topic especificado, con al menos min_stars estrellas y que hayan sido actualizados después de fecha_desde
+            "sort":  "stars", #los resultados se ordenan por número de estrellas
             "order": "desc",
             "per_page": limite,
         })
@@ -111,7 +111,7 @@ class GitHubClient:
         limite: int = 5,
     ) -> list[dict]:
         """
-        Repositorios trending para todos los topics relevantes a TAK.
+        Repositorios en tendencia para todos los topics relevantes a TAK.
         Retorna lista consolidada con metadato _topic_buscado.
         """
         todos = []

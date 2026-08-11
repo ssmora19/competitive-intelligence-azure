@@ -2,6 +2,11 @@
     {
         "nombre": "Accenture",
         "website": "https://www.accenture.com/co-es",
+        "web_urls": [
+        "https://www.accenture.com/co-es/about/song-client-stories-index",
+        "https://www.accenture.com/co-es/services",
+        "https://www.accenture.com/co-es/services/ecosystem-partners"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/accenture/",
         "facebook": "https://www.facebook.com/accenture",
@@ -14,6 +19,12 @@
     {
         "nombre": "IBM Corporation",
         "website": "https://www.ibm.com/mx-es",
+        "web_urls": [
+        "https://www.ibm.com/services",
+        "https://www.ibm.com/partnerplus/directory/companies?field_keyword_03[0]=Colombia",
+        "https://www.ibm.com/es-es/products/maximo/case-studies",
+        "https://developer.ibm.com/technologies/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/ibm/",
         "facebook": "https://www.facebook.com/IBM/",
@@ -26,6 +37,12 @@
     {
         "nombre": "Deloitte",
         "website": "https://www.deloitte.com/latam/es.html",
+        "web_urls": [
+        "https://www.deloitte.com/es/es/services.html",
+        "https://www.deloitte.com/es/es/Industries/technology.html",
+        "https://www.deloitte.com/es/es/alliances.html",
+        "https://www.deloitte.com/in/en/services/consulting/solutions/client-success-stories.html"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/deloitte_colombia/",
         "facebook": "https://www.facebook.com/DeloitteColombia/",
@@ -38,6 +55,11 @@
     {
         "nombre": "Tech Mahindra",
         "website": "https://www.techmahindra.com",
+        "web_urls": [
+        "https://www.techmahindra.com/our-capabilities/",
+        "https://www.techmahindra.com/industries/",
+        "https://www.techmahindra.com/alliance/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/techmahindra_official/",
         "facebook": "https://www.facebook.com/TechMahindra/",
@@ -51,6 +73,12 @@
     {
         "nombre": "PricewaterhouseCoopers (PwC)",
         "website": "https://www.pwc.com/co/es.html",
+        "web_urls": [
+        "https://www.pwc.com/co/es/nuestros-servicios.html",
+        "https://www.pwc.com/gx/en/industries/technology.html",
+        "https://www.pwc.com/us/en/library/case-studies.html",
+        "https://www.pwc.com/gx/en/1/services/alliances.html"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/pwc_colombia/",
         "facebook": "https://www.facebook.com/pwccolombia",
@@ -63,6 +91,11 @@
     {
         "nombre": "Capgemini",
         "website": "https://www.capgemini.com",
+        "web_urls": [
+        "https://www.capgemini.com/es-es/sobre-nosotros/alianzas/",
+        "https://www.capgemini.com/co-es/servicios/",
+        "https://www.capgemini.com/co-es/news/client-stories/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/capgemini/",
         "facebook": "https://www.facebook.com/capgemini/",
@@ -75,6 +108,11 @@
     {
         "nombre": "KPMG",
         "website": "https://kpmg.com/co/es/home.html",
+        "web_urls": [
+        "https://kpmg.com/co/es/servicios.html",
+        "https://kpmg.com/co/es/industries.html",
+        "https://kpmg.com/co/es/conocenos/alianzas.html"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/kpmgcolombia/",
         "facebook": "https://www.facebook.com/kpmgcolombia",
@@ -87,6 +125,13 @@
     {
         "nombre": "Tata Consultancy Services",
         "website": "https://www.tcs.com",
+        "web_urls": [
+        "https://www.tcs.com/what-we-do/services/ai-data-and-analytics",
+        "https://www.tcs.com/what-we-do/services/cloud",
+        "https://www.tcs.com/what-we-do/services/cybersecurity",
+        "https://www.tcs.com/insights/customer-stories",
+        "https://www.tcs.com/who-we-are/alliances-partnerships"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/tcsglobal/",
         "facebook": "https://www.facebook.com/TataConsultancyServices",
@@ -99,6 +144,12 @@
     {
         "nombre": "NTT DATA Group Corporation",
         "website": "https://co.nttdata.com",
+        "web_urls": [
+        "https://co.nttdata.com/services",
+        "https://es.nttdata.com/alliances",
+        "https://es.nttdata.com/case-studies",
+        "https://www.nttdata.com/global/en/insights/technology"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/nttdata.latam",
         "facebook": "https://www.facebook.com/nttdata.latam/",
@@ -110,7 +161,12 @@
     },
     {
         "nombre": "Kyndryl",
-        "website": "https://www.kyndryl.com/us/en",
+        "website": "https://www.kyndryl.com/co/es",
+        "web_urls": [
+        "https://www.kyndryl.com/co/es/services",
+        "https://www.kyndryl.com/co/es/about-us",
+        "https://www.kyndryl.com/co/es/consulting"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/kyndrylglobal/",
         "facebook": "https://www.facebook.com/Kyndryl/",
@@ -123,6 +179,14 @@
     {
         "nombre": "SETI",
         "website": "https://seti.com.co",
+        "web_urls": [
+        "https://seti.com.co/elementor-pagina-223/",
+        "https://seti.com.co/aliados/",
+        "https://seti.com.co/afinacion-y-desarrollo/",
+        "https://seti.com.co/datasimple/",
+        "https://seti.com.co/servicios-cloud/",
+        "https://seti.com.co/operaciones-de-ti/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/seticolombia/",
         "facebook": "https://www.facebook.com/SetiColombia/",
@@ -135,6 +199,10 @@
     {
         "nombre": "IT CROWD",
         "website": "https://www.it-crowd.co",
+        "web_urls": [
+        "https://www.it-crowd.co/oracle-service-partner/",
+        "https://www.it-crowd.co/sistemas-de-ingenieria/"
+        ],
         "pais": "Colombia",
         "instagram": null,
         "facebook": "https://www.facebook.com/people/IT-CROWD-SAS/100085564305055/",
@@ -146,7 +214,11 @@
     },
     {
         "nombre": "Indra",
-        "website": "https://www.indragroup.com/es",
+        "website": "https://www.indragroup.com/es/america-latina/colombia",
+        "web_urls": [
+        "https://www.indragroup.com/es/tecnologia-innovacion",
+        "https://www.indragroup.com/es/impacto-sostenible/impacto-etico/alianzas"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/indracompany/",
         "facebook": "https://www.facebook.com/indracolombia/",
@@ -159,6 +231,12 @@
     {
         "nombre": "Globant",
         "website": "https://www.globant.com/es",
+        "web_urls": [
+        "https://www.globant.com/es/our-work/all-stories",
+        "https://www.globant.com/es/stay-relevant/events",
+        "https://www.globant.com/es/our-services",
+        "https://www.globant.com/es/about/partners"          
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/Globant",
         "facebook": "https://www.facebook.com/Globant",
@@ -171,6 +249,11 @@
     {
         "nombre": "TIVIT",
         "website": "https://tivit.com/es/nova-home-espanhol/",
+        "web_urls": [
+        "https://tivit.com/es/soluciones-digitales/",
+        "https://latam.tivit.com/casos-de-exito",
+        "https://latam.tivit.com/partners"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/tivit_latam/",
         "facebook": "https://www.facebook.com/TIVITLATAM/",
@@ -183,6 +266,10 @@
     {
         "nombre": "Claro",
         "website": "https://www.claro.com.co/personas/",
+        "web_urls": [
+        "https://www.claro.com.co/empresas/",
+        "https://www.clarocloud.com.co/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/clarocolombia/",
         "facebook": "https://www.facebook.com/ClaroCol",
@@ -195,6 +282,10 @@
     {
         "nombre": "CETUS Technology",
         "website": "https://cetus.com.co",
+        "web_urls": [
+        "https://cetus.com.co/soluciones/",
+        "https://cetus.com.co/clientes-que-confian/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/cetustechcol",
         "facebook": "https://www.facebook.com/cetustechcol/",
@@ -207,6 +298,9 @@
     {
         "nombre": "Comware",
         "website": "https://www.comware.com.co",
+        "web_urls": [
+        "https://www.comware.com.co/soluciones/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/comwarecolombia/",
         "facebook": "https://www.facebook.com/ComwareColombia/",
@@ -219,6 +313,10 @@
     {
         "nombre": "Productive Business Solutions (PBS)",
         "website": "https://www.pbs.group/",
+        "web_urls": [
+        "https://www.pbs.group/solutions",
+        "https://www.pbs.group/about"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/pbsgrouplimited/",
         "facebook": "https://www.facebook.com/p/PBS-Colombia-100057607232951/",
@@ -231,6 +329,11 @@
     {
         "nombre": "Iteria",
         "website": "https://iteria.com.co/",
+        "web_urls": [
+        "https://iteria.com.co/#Servicios",
+        "https://iteria.com.co/#Soluciones",
+        "https://iteria.com.co/#soft"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/iteria_sas/",
         "facebook": "https://www.facebook.com/p/Iteria-100064112051890/",
@@ -243,6 +346,11 @@
     {
         "nombre": "Entelgy",
         "website": "https://entelgy.com/donde-estamos/entelgy-colombia/",
+        "web_urls": [
+        "https://entelgy.com/soluciones/",
+        "https://entelgy.com/casos-de-exito/",
+        "https://entelgy.com/certificaciones/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/entelgy_/",
         "facebook": "https://www.facebook.com/Entelgy/",
@@ -255,6 +363,11 @@
     {
         "nombre": "BMIND",
         "website": "https://www.bmind.com",
+        "web_urls": [
+        "https://www.bmind.com/servicios-cloud",
+        "https://www.bmind.com/industrias",
+        "https://www.bmind.com/casos-de-exito"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/bmind_it/",
         "facebook": "https://www.facebook.com/bmindbog/",
@@ -279,6 +392,10 @@
     {
         "nombre": "T&G Consulting",
         "website": "https://tygconsulting.com.co",
+        "web_urls": [
+        "https://tygconsulting.com.co/servicios/",
+        "https://tygconsulting.com.co/nuestro-equipo/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/tgconsultorescol/",
         "facebook": "https://www.facebook.com/TYGCONSULTINGSAS/",
@@ -291,6 +408,11 @@
     {
         "nombre": "Timestamp",
         "website": "https://www.timestampgroup.com/es",
+        "web_urls": [
+        "https://www.timestampgroup.com/es/partners",
+        "https://www.timestampgroup.com/es/acerca-de-la-timestamp",
+        "https://www.timestampgroup.com/es/casos-practicos"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/timestampcolombia/",
         "facebook": "https://www.facebook.com/Timestamp.ES/",
@@ -327,6 +449,11 @@
     {
         "nombre": "ITIS Support",
         "website": "https://itis.com.co",
+        "web_urls": [
+        "https://itis.com.co/soluciones/",
+        "https://itis.com.co/blog/",
+        "https://itis.com.co/nosotros/"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/itissupport/",
         "facebook": "https://www.facebook.com/itissupport/?locale=es_LA",
@@ -339,6 +466,16 @@
     {
         "nombre": "SLM Sistemas",
         "website": "https://slm.cloud",
+        "web_urls": [
+        "https://slm.cloud/inteligencia-artificial",
+        "https://slm.cloud/automatizacion",
+        "https://slm.cloud/blockchain",
+        "https://slm.cloud/analitica-de-datos",
+        "https://slm.cloud/ciberseguridad",
+        "https://slm.cloud/analitica-avanzada",
+        "https://slm.cloud/saas",
+        "https://slm.cloud/integracion"
+        ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/slmcloud/",
         "facebook": "https://www.facebook.com/slmcloud/?locale=es_LA",

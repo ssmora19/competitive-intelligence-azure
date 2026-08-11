@@ -1,6 +1,5 @@
 """
 shared/logger.py
-================
 Logs operativos de ingestión en Azure Table Storage.
 
 Tabla: BronzeIngestLog

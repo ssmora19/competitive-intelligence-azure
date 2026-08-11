@@ -1,0 +1,193 @@
+[
+  {
+    "nombre": "DANE",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["DEPARTAMENTO ADMINISTRATIVO NACIONAL DE ESTADISTICA"],
+    "linkedin": "https://co.linkedin.com/company/departamento-administrativo-nacional-de-estadistica-dane",
+    "noticias_query": "DANE Colombia",
+    "web": null,
+    "nota": "Web NO se scrapea: su seccion de noticias esta congelada en 2018. DANE tambien es fuente de mercado (doble rol)."
+  },
+  {
+    "nombre": "POSITIVA",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["POSITIVA", "UNION TEMPORAL LA PREVISORA"],
+    "linkedin": "https://www.linkedin.com/company/positiva-compania-de-seguros",
+    "noticias_query": "Positiva Compania de Seguros",
+    "web": null,
+    "nota": "En SECOP aparece tambien como union temporal con La Previsora."
+  },
+  {
+    "nombre": "INFIHUILA",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["INSTITUTO FINANCIERO PARA EL DESARROLLO DEL HUILA"],
+    "linkedin": null,
+    "noticias_query": "Infihuila",
+    "web": "https://www.infihuila.gov.co/convocatorias/",
+    "nota": "NIT 891180213. Convocatorias = senal directa. LinkedIn POR VERIFICAR."
+  },
+  {
+    "nombre": "CrediFlores",
+    "tipo": "privado",
+    "activo": true,
+    "secop_nombres": [],
+    "linkedin": null,
+    "noticias_query": "CrediFlores Colombia",
+    "web": null,
+    "nota": "Privado (financiero/cooperativo). LinkedIn y web POR VERIFICAR. No aplica SECOP como comprador."
+  },
+  {
+    "nombre": "Secretaria de Hacienda de Bogota",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["SECRETARIA DISTRITAL DE HACIENDA"],
+    "linkedin": null,
+    "noticias_query": "Secretaria de Hacienda Bogota",
+    "web": null,
+    "nota": "El LinkedIn que aparecia era un perfil personal (/in/), no company page -> desactivado. NIT del Distrito 899.999.061-9 es compartido: por eso se filtra por NOMBRE, no por NIT."
+  },
+  {
+    "nombre": "Secretaria de Planeacion de Bogota",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["SECRETARIA DISTRITAL DE PLANEACION"],
+    "linkedin": "https://www.linkedin.com/company/secretaria-distrital-de-planeacion",
+    "noticias_query": "Secretaria de Planeacion Bogota",
+    "web": null,
+    "nota": "Comparte NIT del Distrito con Hacienda: filtrar por nombre."
+  },
+  {
+    "nombre": "COLVATEL",
+    "tipo": "ti_privado",
+    "activo": true,
+    "secop_nombres": ["COLVATEL"],
+    "linkedin": "https://www.linkedin.com/company/colvatel",
+    "noticias_query": "Colvatel",
+    "web": null,
+    "nota": "Empresa de TI: posible competidor tambien. En SECOP se busca como ADJUDICATARIO (proveedor). Web POR VERIFICAR."
+  },
+  {
+    "nombre": "Informacion Gerencial Ltda",
+    "tipo": "ti_privado",
+    "activo": true,
+    "secop_nombres": ["INFORMACION GERENCIAL"],
+    "linkedin": null,
+    "noticias_query": "Informacion Gerencial Ltda Colombia",
+    "web": null,
+    "nota": "Empresa de TI: posible competidor. SECOP como adjudicatario. LinkedIn/web POR VERIFICAR."
+  },
+  {
+    "nombre": "RED COMPUTO",
+    "tipo": "ti_privado",
+    "activo": true,
+    "secop_nombres": ["RED COMPUTO"],
+    "linkedin": "https://www.linkedin.com/company/redcomputo",
+    "instagram": "https://www.instagram.com/redcomputo/",
+    "noticias_query": "Red Computo Soluciones Informaticas",
+    "web": "https://www.redcomputo.com.co/blog",
+    "nota": "NIT 830016004. Empresa de TI: posible competidor. SECOP como adjudicatario."
+  },
+  {
+    "nombre": "RUNT",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["MINISTERIO DE TRANSPORTE", "CONCESION RUNT"],
+    "linkedin": "https://www.linkedin.com/company/concesion-runt",
+    "noticias_query": "RUNT Registro Unico Nacional de Transito",
+    "web": null,
+    "nota": "Contrata via entidad sombrilla (Min. Transporte) y como Concesion RUNT: se usan los dos nombres."
+  },
+  {
+    "nombre": "COMWARE",
+    "tipo": "ti_privado",
+    "activo": true,
+    "secop_nombres": ["COMWARE"],
+    "linkedin": "https://www.linkedin.com/company/comware-s-a-",
+    "noticias_query": "Comware Colombia",
+    "web": null,
+    "nota": "Empresa de TI: posible competidor (estaba en la lista inventada de competidores). SECOP como adjudicatario."
+  },
+  {
+    "nombre": "Secretaria de Educacion de Bogota",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["SECRETARIA DE EDUCACION DEL DISTRITO"],
+    "linkedin": "https://www.linkedin.com/company/secretaria-de-educacion-del-distrito",
+    "noticias_query": "Secretaria de Educacion Bogota",
+    "web": null,
+    "nota": "Nombre exacto de SECOP POR VERIFICAR (puede aparecer como SECRETARIA DE EDUCACION DEL DISTRITO - SED)."
+  },
+  {
+    "nombre": "Famisanar EPS",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["FAMISANAR", "SUPERINTENDENCIA NACIONAL DE SALUD"],
+    "linkedin": "https://www.linkedin.com/company/famisanar-eps",
+    "noticias_query": "Famisanar EPS",
+    "web": "https://www.famisanar.com.co/espacio-de-prensa",
+    "nota": "EPS privada; en SECOP la vigila Supersalud. Se usan los dos nombres."
+  },
+  {
+    "nombre": "Loteria de Bogota",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["LOTERIA DE BOGOTA"],
+    "linkedin": "https://www.linkedin.com/company/loteria-de-bogota",
+    "noticias_query": "Loteria de Bogota",
+    "web": null,
+    "nota": "NIT 899999111."
+  },
+  {
+    "nombre": "Ecopetrol",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["ECOPETROL S.A."],
+    "linkedin": "https://www.linkedin.com/company/ecopetroloficial",
+    "noticias_query": "Ecopetrol",
+    "web": "https://www.ecopetrol.com.co/wps/portal/Home/es/noticias/sala-de-prensa",
+    "nota": "Hibrido: estatal pero web muy activa (SI se scrapea). Poco SECOP: usa portal propio de proveedores. NIT 899.999.068-1."
+  },
+  {
+    "nombre": "Asobancaria",
+    "tipo": "privado",
+    "activo": true,
+    "secop_nombres": [],
+    "linkedin": "https://www.linkedin.com/company/asobancaria",
+    "noticias_query": "Asobancaria",
+    "web": "https://www.asobancaria.com/comunicados-de-prensa/",
+    "nota": "Gremio privado. No aplica SECOP como comprador."
+  },
+  {
+    "nombre": "Claro",
+    "tipo": "privado_grande",
+    "activo": true,
+    "secop_nombres": [],
+    "linkedin": "https://co.linkedin.com/company/clarocolombia",
+    "noticias_query": "Claro Colombia",
+    "web": "https://www.claro.com.co/institucional/sala-de-prensa/",
+    "nota": "Privado grande. Showcase adicional: linkedin.com/showcase/claro-empresas-co."
+  },
+  {
+    "nombre": "Universidad Militar Nueva Granada",
+    "tipo": "publico",
+    "activo": true,
+    "secop_nombres": ["UNIVERSIDAD MILITAR NUEVA GRANADA"],
+    "linkedin": "https://www.linkedin.com/school/universidad-militar-nueva-granada",
+    "noticias_query": "Universidad Militar Nueva Granada",
+    "web": "https://www.umng.edu.co/noticias",
+    "nota": "Tiene sala de noticias activa en noticias.umng.edu.co."
+  },
+  {
+    "nombre": "SOFT Management",
+    "tipo": "ti_privado",
+    "activo": true,
+    "secop_nombres": ["SOFT MANAGEMENT"],
+    "linkedin": null,
+    "noticias_query": "Soft Management Colombia",
+    "web": null,
+    "nota": "Empresa de TI/software: posible competidor. SECOP como adjudicatario. LinkedIn/web POR VERIFICAR."
+  }
+]

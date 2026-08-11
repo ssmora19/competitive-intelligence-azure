@@ -63,7 +63,7 @@ BRONZE_CONTAINER = "bronze-competidores"
 DATA_PATH        = os.path.join(os.path.dirname(__file__), "..", "data", "companies.json")
 
 log       = logging.getLogger("ci.competidores")
-app       = func.FunctionApp()
+app = func.Blueprint()
 apify     = ApifyClient()
 yt        = YouTubeClient()
 firecrawl = FirecrawlClient()
@@ -290,8 +290,16 @@ def ingest_tiktok(companies: list[dict]) -> list[dict]:
     return resultados
 
 
-def ingest_linkedin(companies: list[dict]) -> list[dict]:
+def ingest_linkedin(companies: list[dict],
+                    desde: int = 0, hasta: int | None = None) -> list[dict]:
     activas = get_activas(companies, "linkedin")
+
+    # tanda: permite probar con pocos competidores (control de costo Apify)
+    total   = len(activas)
+    hasta   = total if hasta is None else min(hasta, total)
+    activas = activas[desde:hasta]
+    log.info("linkedin: procesando %d..%d de %d", desde, hasta, total)
+
     urls    = []
     for c in activas:
         li = c.get("url", "")
@@ -354,23 +362,41 @@ def ingest_youtube(companies: list[dict]) -> list[dict]:
     return resultados
 
 
-def ingest_web(companies: list[dict]) -> list[dict]:
+def ingest_web(companies: list[dict],
+               desde: int = 0, hasta: int | None = None) -> list[dict]:
     """
-    Web scraping semanal usando Firecrawl.
-    Solo guarda Markdown crudo en Bronze — sin IA.
+    QUÉ HACE:  scrapea la web de cada competidor con Firecrawl (Markdown crudo).
+    PARA QUÉ:  KIN 2 (portafolio/servicios) y KIN 4 (alianzas/partners).
+
+    URLs por competidor = 'website' SIEMPRE + 'web_urls' (rutas reales
+    verificadas) si existen. Ya NO adivina rutas genéricas con
+    build_company_urls, así que se acaban los 404 de rutas inventadas.
+
+    PROCESAMIENTO EN TANDAS (desde/hasta): con 30 competidores × varias URLs,
+    Firecrawl puede exceder el límite de 10 min. Se puede procesar por rangos:
+        ?fuente=web&desde=0&hasta=10
+        ?fuente=web&desde=10&hasta=20
+        ?fuente=web&desde=20&hasta=30
     """
-    activas    = get_activas(companies, "web")
     resultados = []
 
-    for cfg in activas:
-        nombre  = cfg["nombre"]
-        website = cfg.get("url", "")
+    total = len(companies)
+    hasta = total if hasta is None else min(hasta, total)
+    lote  = companies[desde:hasta]
+    log.info("web: procesando %d..%d de %d", desde, hasta, total)
+
+    for company in lote:
+        nombre  = company.get("nombre", "desconocido")
+        website = company.get("website")
         if not website:
             continue
 
-        urls      = build_company_urls(website)
-        items_raw = firecrawl.scrape_many(urls)
+        # website siempre + web_urls (sin duplicados, preservando el orden)
+        urls   = [website] + [u for u in (company.get("web_urls") or []) if u]
+        vistos = set()
+        urls   = [u for u in urls if not (u in vistos or vistos.add(u))]
 
+        items_raw = firecrawl.scrape_many(urls)
         resultados.append(_ingestar(
             fuente     = "web",
             empresa    = nombre,
@@ -384,38 +410,39 @@ def ingest_web(companies: list[dict]) -> list[dict]:
 
 def ingest_noticias_competidores(companies: list[dict]) -> list[dict]:
     """
-    Noticias y comunicados de prensa de cada competidor.
+    QUÉ HACE:
+      Trae noticias de TERCEROS sobre cada competidor vía Google News RSS
+      (búsqueda por nombre), reusando news_client.buscar_noticias_empresa.
 
-    Scrape de la sección de noticias/prensa de la web corporativa.
-    Detecta lanzamientos, alianzas, premios y movimientos estratégicos
-    antes de que lleguen a medios generales.
+    PARA QUÉ SIRVE:
+      Detectar lanzamientos, alianzas, premios y movimientos estratégicos
+      de la competencia — SIN scrapear rutas /noticias, /news… que producían
+      404. Trae cobertura de medios (terceros), no solo autopromoción.
+
+    NOTA: usa el nombre de cada empresa como término de búsqueda; no depende
+    de que la empresa tenga 'website' en companies.json (no usa get_activas).
+    Recorre todas las empresas. Opcionalmente respeta un 'noticias_query' si
+    lo agregas al companies.json para afinar la búsqueda.
 
     Frecuencia: semanal.
     """
-    activas    = get_activas(companies, "web")
+    from shared.news_client import NewsClient
+    news       = NewsClient()
     resultados = []
 
-    paths_noticias = [
-        "/noticias", "/news", "/sala-de-prensa", "/press",
-        "/blog", "/insights", "/comunicados", "/novedades",
-    ]
+    for company in companies:
+        nombre = company["nombre"]
+        query  = company.get("noticias_query") or nombre
 
-    for cfg in activas:
-        nombre  = cfg["nombre"]
-        website = cfg.get("url", "")
-        if not website:
-            continue
-
-        urls = [website.rstrip("/") + path for path in paths_noticias]
-        items_raw = firecrawl.scrape_many(urls)
-
-        resultados.append(_ingestar(
-            fuente     = "noticias_competidor",
-            empresa    = nombre,
-            items_raw  = items_raw,
-            source_url = website,
-        ))
-        firecrawl.throttle()
+        noticias = news.buscar_noticias_empresa(query, limite=10)
+        if noticias:
+            resultados.append(_ingestar(
+                fuente     = "noticias_competidor",
+                empresa    = nombre,
+                items_raw  = noticias,
+                source_url = f"google_news:{query}",
+            ))
+        news.throttle()
 
     return resultados
 
@@ -464,6 +491,65 @@ def ingest_github_competidores(companies: list[dict]) -> list[dict]:
     return resultados
 
 
+def ingest_secop_competidores(companies: list[dict],
+                              desde: int = 0, hasta: int | None = None) -> list[dict]:
+    """
+    QUÉ HACE:
+      Busca en SECOP II los contratos que cada competidor ganó como
+      adjudicatario (campo proveedor_adjudicado), reusando el método
+      get_contratos_competidor() de shared/secop_client.py.
+
+    PARA QUÉ SIRVE:
+      Detectar qué contratos públicos gana la competencia: con qué entidad,
+      por cuánto valor y de qué servicio. Inteligencia directa sobre dónde
+      gana la competencia lo que TAK no persigue.
+      (El valor_del_contrato sirve además como PROXY de precio para Gold.)
+
+    PROCESAMIENTO EN TANDAS (desde/hasta): como cada competidor consulta SECOP
+    (lento e intermitente), recorrer los 30 de una excede el límite de 10 min
+    de Azure Functions. Por eso se puede procesar por rangos:
+        ?fuente=secop_competidores&desde=0&hasta=10
+        ?fuente=secop_competidores&desde=10&hasta=20
+        ?fuente=secop_competidores&desde=20&hasta=30
+
+    NOTA: SECOP no depende de companies.json (no usa get_activas). Recorre
+    todas las empresas y consulta la API por el nombre de cada una.
+
+    Frecuencia sugerida: semanal (las adjudicaciones no cambian a diario).
+    """
+    from shared.secop_client import SecopClient
+    secop      = SecopClient()
+    resultados = []
+
+    total = len(companies)
+    hasta = total if hasta is None else min(hasta, total)
+    companies = companies[desde:hasta]
+    log.info("secop_competidores: procesando %d..%d de %d", desde, hasta, total)
+
+    for company in companies:
+        nombre = company["nombre"]
+
+        # Método que ya existe en secop_client.py: limpia el nombre
+        # (quita 'tech', 'grupo', 'sas'...), busca por proveedor_adjudicado
+        # y etiqueta cada item con _competidor_buscado (trazabilidad).
+        items_raw = secop.get_contratos_competidor(
+            nombre_empresa = nombre,
+            limite         = 50,
+        )
+
+        if items_raw:
+            resultados.append(_ingestar(
+                fuente     = "secop_competidor",
+                empresa    = nombre,
+                items_raw  = items_raw,
+                source_url = "https://www.datos.gov.co/resource/jbjy-vk9h",
+            ))
+
+        secop.throttle()
+
+    return resultados
+
+
 # ─────────────────────────────────────────────────────────────
 # MAPA DE FUENTES — para ejecución manual y timers
 # ─────────────────────────────────────────────────────────────
@@ -477,6 +563,7 @@ FUENTES = {
     "web":                   ingest_web,
     "noticias_competidores": ingest_noticias_competidores,
     "github_competidores":   ingest_github_competidores,
+    "secop_competidores":    ingest_secop_competidores,
 }
 
 
@@ -491,39 +578,49 @@ def _ensure_tables() -> None:
 # TRIGGERS — Timer (escalonados, Colombia UTC-5)
 # ─────────────────────────────────────────────────────────────
 
-@app.timer_trigger(schedule="0 0 11 * * *", arg_name="timer", run_on_startup=False)
-def timer_instagram(timer: func.TimerRequest) -> None:
-    """Instagram — 6:00am Colombia (11:00 UTC)."""
-    _ensure_tables()
-    log.info("Bronze Instagram: %s", ingest_instagram(load_companies()))
+# ── TIMER APIFY DESACTIVADO (evita gasto accidental de crédito) ──
+# Esta fuente SOLO se ejecuta manualmente por URL.
+# @app.timer_trigger(schedule="0 0 11 * * *", arg_name="timer", run_on_startup=False)
+# def timer_instagram(timer: func.TimerRequest) -> None:
+#     """Instagram — 6:00am Colombia (11:00 UTC)."""
+#     _ensure_tables()
+#     log.info("Bronze Instagram: %s", ingest_instagram(load_companies()))
 
 
-@app.timer_trigger(schedule="0 10 11 * * *", arg_name="timer", run_on_startup=False)
-def timer_facebook(timer: func.TimerRequest) -> None:
-    """Facebook — 6:10am Colombia."""
-    _ensure_tables()
-    log.info("Bronze Facebook: %s", ingest_facebook(load_companies()))
+# ── TIMER APIFY DESACTIVADO (evita gasto accidental de crédito) ──
+# Esta fuente SOLO se ejecuta manualmente por URL.
+# @app.timer_trigger(schedule="0 10 11 * * *", arg_name="timer", run_on_startup=False)
+# def timer_facebook(timer: func.TimerRequest) -> None:
+#     """Facebook — 6:10am Colombia."""
+#     _ensure_tables()
+#     log.info("Bronze Facebook: %s", ingest_facebook(load_companies()))
 
 
-@app.timer_trigger(schedule="0 20 11 * * *", arg_name="timer", run_on_startup=False)
-def timer_tiktok(timer: func.TimerRequest) -> None:
-    """TikTok — 6:20am Colombia."""
-    _ensure_tables()
-    log.info("Bronze TikTok: %s", ingest_tiktok(load_companies()))
+# ── TIMER APIFY DESACTIVADO (evita gasto accidental de crédito) ──
+# Esta fuente SOLO se ejecuta manualmente por URL.
+# @app.timer_trigger(schedule="0 20 11 * * *", arg_name="timer", run_on_startup=False)
+# def timer_tiktok(timer: func.TimerRequest) -> None:
+#     """TikTok — 6:20am Colombia."""
+#     _ensure_tables()
+#     log.info("Bronze TikTok: %s", ingest_tiktok(load_companies()))
 
 
-@app.timer_trigger(schedule="0 30 11 * * *", arg_name="timer", run_on_startup=False)
-def timer_linkedin(timer: func.TimerRequest) -> None:
-    """LinkedIn — 6:30am Colombia."""
-    _ensure_tables()
-    log.info("Bronze LinkedIn: %s", ingest_linkedin(load_companies()))
+# ── TIMER APIFY DESACTIVADO (evita gasto accidental de crédito) ──
+# Esta fuente SOLO se ejecuta manualmente por URL.
+# @app.timer_trigger(schedule="0 30 11 * * *", arg_name="timer", run_on_startup=False)
+# def timer_linkedin(timer: func.TimerRequest) -> None:
+#     """LinkedIn — 6:30am Colombia."""
+#     _ensure_tables()
+#     log.info("Bronze LinkedIn: %s", ingest_linkedin(load_companies()))
 
 
-@app.timer_trigger(schedule="0 40 11 * * *", arg_name="timer", run_on_startup=False)
-def timer_x(timer: func.TimerRequest) -> None:
-    """X/Twitter — 6:40am Colombia."""
-    _ensure_tables()
-    log.info("Bronze X: %s", ingest_x(load_companies()))
+# ── TIMER APIFY DESACTIVADO (evita gasto accidental de crédito) ──
+# Esta fuente SOLO se ejecuta manualmente por URL.
+# @app.timer_trigger(schedule="0 40 11 * * *", arg_name="timer", run_on_startup=False)
+# def timer_x(timer: func.TimerRequest) -> None:
+#     """X/Twitter — 6:40am Colombia."""
+#     _ensure_tables()
+#     log.info("Bronze X: %s", ingest_x(load_companies()))
 
 
 @app.timer_trigger(schedule="0 50 11 * * *", arg_name="timer", run_on_startup=False)
@@ -554,12 +651,19 @@ def timer_github_competidores(timer: func.TimerRequest) -> None:
     log.info("Bronze GitHub: %s", ingest_github_competidores(load_companies()))
 
 
+@app.timer_trigger(schedule="0 30 8 * * 0", arg_name="timer", run_on_startup=False)
+def timer_secop_competidores(timer: func.TimerRequest) -> None:
+    """SECOP competidores — domingos 3:30am Colombia (8:30 UTC)."""
+    _ensure_tables()
+    log.info("Bronze SECOP competidores: %s", ingest_secop_competidores(load_companies()))
+
+
 # ─────────────────────────────────────────────────────────────
 # HTTP TRIGGERS — ejecución manual y observabilidad
 # ─────────────────────────────────────────────────────────────
 
 @app.route(route="competidores/ejecutar", methods=["GET", "POST"])
-def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
+def ejecutar_competidores(req: func.HttpRequest) -> func.HttpResponse:
     """
     Ejecuta una fuente manualmente.
     GET /api/competidores/ejecutar?fuente=instagram
@@ -580,9 +684,19 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
     resultados = []
     targets    = FUENTES.items() if fuente == "todas" else [(fuente, FUENTES[fuente])]
 
+    # parámetros de tanda (solo aplican a secop_competidores)
+    def _int_param(nombre):
+        v = req.params.get(nombre)
+        return int(v) if v is not None and v.isdigit() else None
+    desde = _int_param("desde") or 0
+    hasta = _int_param("hasta")
+
     for nombre_f, fn in targets:
         log.info("Manual: ejecutando %s", nombre_f)
-        res = fn(companies)
+        if nombre_f in ("secop_competidores", "web", "linkedin"):
+            res = fn(companies, desde=desde, hasta=hasta)
+        else:
+            res = fn(companies)
         resultados.extend(res if isinstance(res, list) else [res])
         apify.throttle()
 
@@ -593,7 +707,7 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="competidores/status", methods=["GET"])
-def status(req: func.HttpRequest) -> func.HttpResponse:
+def status_competidores(req: func.HttpRequest) -> func.HttpResponse:
     """
     Observabilidad del dominio competidores.
 
@@ -637,7 +751,7 @@ def status(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="competidores/reset_cursor", methods=["POST"])
-def reset(req: func.HttpRequest) -> func.HttpResponse:
+def reset_competidores(req: func.HttpRequest) -> func.HttpResponse:
     """
     Resetea el cursor delta de una empresa/fuente.
     Fuerza re-ingestión completa en la próxima ejecución.

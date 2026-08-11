@@ -3,20 +3,35 @@ ingestion_proveedores/function_proveedores.py
 =============================================
 Azure Function — KIT 4: Ecosistema de proveedores tecnológicos
 
-Fuentes Bronze:
-  1. Firecrawl — Web proveedores core TAK (Oracle, Snowflake, IBM, Dell, MS, Red Hat)
-     → Detecta cambios de portafolio, nuevas soluciones, precios
-  2. Firecrawl — Marketplaces tech (AWS, Azure, Oracle Cloud Marketplace)
-     → Detecta nuevos proveedores entrando al ecosistema cloud
-  3. Firecrawl — Licenciamiento (páginas de precios y términos)
-     → Detecta cambios en modelos de licencia que afectan a TAK
-  4. Firecrawl — Startups tech Colombia (Endeavor, iNNpulsa)
-     → Detecta nuevos actores entrando al mercado colombiano
-  5. RSS noticias proveedores
-     → Novedades de fabricantes (reutiliza news_client de KIT 3)
+Partners reales de TAK vigilados:
+  Oracle, IBM, AWS, Microsoft, Dell, TD SYNNEX, Fortinet, Red Hat, Nexsys.
+  Snowflake incluido (partner confirmado por gerencia).
+
+KIN que responde:
+  1. ¿Qué nuevos proveedores están entrando con soluciones relevantes?  (Google News)
+  2. ¿Qué nuevas tecnologías/soluciones incorporan los proveedores?      (web + noticias + RSS)
+  3. ¿Qué cambios hay en los modelos de licenciamiento?                  (licenciamiento)
+  4. (Gold) estrategias para convertir no-clientes en clientes -> NO es Bronze.
+
+Diseño (mejora de trazabilidad):
+  Cada partner se ingiere con SU PROPIA etiqueta empresa (Oracle, AWS, Fortinet…),
+  no bajo un genérico "fabricantes_tak". Así Gold puede comparar por partner.
+  Las URLs viven en el catálogo PROVEEDORES, organizadas por categoría:
+    web       -> portafolio / soluciones / partners  (Firecrawl)  KIN 2
+    licencia  -> precios / licenciamiento            (Firecrawl)  KIN 3
+    noticias  -> salas de prensa / newsroom          (Firecrawl)  KIN 2
+
+Notas de la auditoría:
+  - URLs de AWS limpiadas de parámetros de rastreo (gclid/trk/gads); descartada
+    la landing free/webapps (era anuncio).
+  - TD SYNNEX y Nexsys son DISTRIBUIDORES (no fabricantes): su "web" es qué marcas
+    distribuyen -> sirve a KIN 1 y 2.
+  - Varias páginas son catálogos JS paginados (Oracle marketplace, IBM, Dell
+    FindAPartner): Firecrawl trae solo la primera vista, no el catálogo completo.
+  - Este módulo NO usa build_company_urls; el recorte de WEB_PATHS no lo afecta.
 
 Container Bronze: bronze-proveedores
-Frecuencia: mensual — los portafolios y licencias cambian lentamente
+Frecuencia: mensual — portafolios y licencias cambian lentamente.
 """
 
 import os
@@ -45,9 +60,111 @@ CONN_STR         = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
 BRONZE_CONTAINER = "bronze-proveedores"
 
 log  = logging.getLogger("ci.proveedores")
-app  = func.FunctionApp()
+app = func.Blueprint()
 fc   = FirecrawlClient()
 news = NewsClient()
+
+
+# ─────────────────────────────────────────────────────────────
+# CATÁLOGO DE PROVEEDORES  (URLs verificadas por el usuario)
+# ─────────────────────────────────────────────────────────────
+PROVEEDORES = {
+    "Oracle": {
+        "web": [
+            "https://www.oracle.com/co/",
+            "https://marketplace.oracle.com/partners",
+            "https://www.oracle.com/cloud/",
+        ],
+        "licencia": ["https://www.oracle.com/co/cloud/pricing/"],
+        "noticias": ["https://www.oracle.com/news/"],
+    },
+    "IBM": {
+        "web": [
+            "https://www.ibm.com/co-es/",
+            "https://www.ibm.com/es-es/partnerplus/services",
+        ],
+        "licencia": ["https://www.ibm.com/co-es/products/software"],
+        "noticias": ["https://www.ibm.com/es-es/new"],
+    },
+    "AWS": {
+        "web": [
+            "https://aws.amazon.com/es/partners/work-with-partners/",
+            "https://aws.amazon.com/es/solutions/manufacturing/",
+            "https://aws.amazon.com/es/professional-services/",
+            "https://aws.amazon.com/es/business-applications/",
+            "https://aws.amazon.com/es/isv/saas-scaling-and-partnership/",
+        ],
+        "licencia": ["https://aws.amazon.com/es/pricing/"],
+        "noticias": ["https://aws.amazon.com/es/new/"],
+    },
+    "Microsoft": {
+        "web": ["https://www.microsoft.com/es-co/"],
+        "licencia": [
+            "https://www.microsoft.com/es-co/microsoft-365/business/microsoft-365-plans-and-pricing",
+        ],
+        "noticias": ["https://news.microsoft.com/source/latam/ultimas-noticias/"],
+    },
+    "Dell": {
+        "web": [
+            "https://dell.my.site.com/FindAPartner/s/partnersearch?language=es&country=co",
+            "https://www.dell.com/es-es/blog/categories/solutions-services/",
+        ],
+        "licencia": [],
+        "noticias": [],  # el portal de Dell no publica sala de prensa
+    },
+    "TD SYNNEX": {  # distribuidor
+        "web": [
+            "https://www.tdsynnex.com/na/us/vendors/",
+            "https://www.tdsynnex.com/na/us/advancedsolutions/",
+            "https://www.tdsynnex.com/na/us/destination-ai/",
+            "https://www.tdsynnex.com/na/us/consumer/",
+        ],
+        "licencia": [],
+        "noticias": ["https://news.tdsynnex.com/"],
+    },
+    "Fortinet": {
+        "web": [
+            "https://www.fortinet.com/lat/solutions/network-security",
+            "https://www.fortinet.com/lat/solutions/ai-security",
+            "https://www.fortinet.com/lat/solutions/unified-sase",
+            "https://www.fortinet.com/lat/solutions/security-operations",
+            "https://www.fortinet.com/lat/partners/partnerships/alliance-partners",
+        ],
+        "licencia": [],
+        "noticias": ["https://www.fortinet.com/lat/corporate/about-us/newsroom"],
+    },
+    "Red Hat": {
+        "web": [
+            "https://www.redhat.com/es/partners/certified-cloud-and-service-providers",
+            "https://www.redhat.com/es/partners/isv",
+            "https://catalog.redhat.com/en",
+            "https://www.redhat.com/es/technologies",
+        ],
+        "licencia": ["https://www.redhat.com/es/about/eulas"],
+        "noticias": [],  # cubierto por RSS (redhat.com/en/rss/blog)
+    },
+    "Nexsys": {  # distribuidor
+        "web": [
+            "https://www.nexsysla.com/co/fabricantes/",
+            "https://www.nexsysla.com/co/cloud/portafolio/",
+            "https://www.nexsysla.com/co/promociones/",
+        ],
+        "licencia": [],
+        "noticias": ["https://www.nexsysla.com/co/noticias/"],
+    },
+
+    "Snowflake": {  # partner confirmado por gerencia (voz a voz)
+        "web": [
+            "https://www.snowflake.com/en/why-snowflake/partners/all-partners/",
+            "https://www.snowflake.com/en/why-snowflake/",
+        ],
+        "licencia": ["https://www.snowflake.com/en/data-cloud/pricing-options/"],
+        "noticias": [
+            "https://www.snowflake.com/en/news/news-coverage/",
+            "https://www.snowflake.com/en/news/press-releases/",
+        ],
+    },
+}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -131,60 +248,117 @@ def _ingestar(
 
 
 # ─────────────────────────────────────────────────────────────
-# INGESTORES
+# INGESTORES — timer  (iteran el catálogo PROVEEDORES por partner)
 # ─────────────────────────────────────────────────────────────
 
-def ingest_web_proveedores_core() -> dict:
+def _ingestar_categoria(fuente: str, categoria: str) -> list[dict]:
     """
-    Webs de los fabricantes/proveedores core de TAK.
+    Motor común: para cada partner con URLs en `categoria`, scrapea con
+    Firecrawl y guarda bajo empresa = nombre del partner (trazabilidad).
+    """
+    resultados = []
+    for nombre, cfg in PROVEEDORES.items():
+        urls = cfg.get(categoria) or []
+        if not urls:
+            continue
+        try:
+            items_raw = fc.scrape_many(urls)   # el filtro statusCode ya bota 404s
+        except Exception as ex:
+            log.warning("[%s/%s] scrape falló: %s", fuente, nombre, ex)
+            items_raw = []
+        resultados.append(_ingestar(
+            fuente     = fuente,
+            empresa    = nombre,
+            items_raw  = items_raw,
+            source_url = urls[0],
+        ))
+        fc.throttle()
+    return resultados
 
-    TAK es partner de Oracle, IBM, Dell, Microsoft, Red Hat, Snowflake.
-    Monitorea cambios en sus portafolios, nuevas soluciones y alianzas.
 
+def ingest_web_proveedores_core() -> list[dict]:
+    """
+    QUÉ HACE:  scrapea portafolio/soluciones/partners de cada proveedor.
+    PARA QUÉ:  KIN 2 — nuevas tecnologías/soluciones en su portafolio.
     Frecuencia: mensual.
     """
-    urls = [
-        # Oracle — principal fabricante de TAK
-        "https://www.oracle.com/co/",
-        "https://www.oracle.com/co/partners/",
-        "https://www.oracle.com/cloud/",
+    return _ingestar_categoria("web_proveedores_core", "web")
 
-        # Snowflake
-        "https://www.snowflake.com/en/partners/",
-        "https://www.snowflake.com/en/why-snowflake/",
 
-        # IBM
-        "https://www.ibm.com/co-es/",
-        "https://www.ibm.com/partnerworld/",
+def ingest_licenciamiento() -> list[dict]:
+    """
+    QUÉ HACE:  scrapea páginas de precios/licenciamiento por proveedor.
+    PARA QUÉ:  KIN 3 — cambios en modelos de licencia.
+    NOTA: pricing suele ser muy dinámico (JS); verifica contenido real.
+    Frecuencia: mensual.
+    """
+    return _ingestar_categoria("licenciamiento_fabricantes", "licencia")
 
-        # Red Hat
-        "https://www.redhat.com/es/partners",
-        "https://www.redhat.com/es/technologies",
 
-        # Dell
-        "https://www.dell.com/es-co/dt/solutions/index.htm",
+def ingest_noticias_proveedores() -> list[dict]:
+    """
+    QUÉ HACE:  scrapea con Firecrawl las salas de prensa/newsroom por proveedor
+               (Oracle, AWS, TD SYNNEX, Fortinet, Nexsys, Snowflake).
+    PARA QUÉ:  KIN 2 — anuncios corporativos, alianzas, lanzamientos.
+    Complementa a rss_proveedores (feeds técnicos): esto es la prensa oficial.
+    Frecuencia: mensual.
+    """
+    return _ingestar_categoria("noticias_proveedores", "noticias")
 
-        # Microsoft
-        "https://www.microsoft.com/es-co/",
-    ]
-    items_raw = fc.scrape_many(urls)
+
+def ingest_rss_proveedores() -> dict:
+    """
+    QUÉ HACE:  lee los RSS de fabricantes (grupo 'fabricantes' del news_client:
+               Oracle DB, Snowflake engineering, Red Hat blog).
+    PARA QUÉ:  KIN 2 — novedades técnicas de producto vía feed.
+    Frecuencia: mensual.
+    """
+    items_raw = news.get_feeds_by_group("fabricantes", limite=20)
     return _ingestar(
-        fuente     = "web_proveedores_core",
+        fuente     = "rss_proveedores",
         empresa    = "fabricantes_tak",
         items_raw  = items_raw,
-        source_url = "oracle_snowflake_ibm_redhat_dell_microsoft",
+        source_url = "rss_fabricantes_tak",
     )
 
 
+def ingest_startups_tech_colombia() -> dict:
+    """
+    QUÉ HACE:  Google News por temas de NUEVOS proveedores/soluciones TI en
+               Colombia (reusa news_client.buscar_noticias_empresa).
+    PARA QUÉ:  KIN 1 — nuevos proveedores entrando al mercado.
+    Reemplaza el scraping de iNNpulsa/Endeavor/apps.co (rutas supuestas + ruido).
+    Frecuencia: mensual.
+    """
+    temas = [
+        "nueva empresa software Colombia",
+        "startup tecnologia B2B Colombia",
+        "proveedor nube Colombia lanzamiento",
+        "empresa tecnologia entra mercado Colombia",
+        "solucion cloud datos empresas Colombia",
+    ]
+    todos_items = []
+    for tema in temas:
+        todos_items.extend(news.buscar_noticias_empresa(tema, limite=10))
+        news.throttle()
+
+    return _ingestar(
+        fuente     = "startups_tech_colombia",
+        empresa    = "ecosistema_colombia",
+        items_raw  = todos_items,
+        source_url = "google_news:nuevos_proveedores_colombia",
+    )
+
+
+# ─────────────────────────────────────────────────────────────
+# INGESTORES — opcionales (solo HTTP, fuera del timer)
+# ─────────────────────────────────────────────────────────────
+
 def ingest_marketplaces_tech() -> dict:
     """
-    Marketplaces cloud — nuevos proveedores entrando al ecosistema.
-
-    AWS, Azure y Oracle Cloud Marketplace son donde los nuevos
-    proveedores de software publican sus soluciones.
-    Detecta nuevos actores antes de que lleguen al mercado colombiano.
-
-    Frecuencia: mensual.
+    QUÉ HACE:  scrapea marketplaces cloud (AWS, Azure, Oracle, Salesforce).
+    ⚠️ OPCIONAL — páginas de búsqueda JS de bajo rendimiento; Google News cubre
+       mejor el KIN 1. Queda por HTTP para evaluar.
     """
     urls = [
         "https://aws.amazon.com/marketplace/search/results?searchTerms=colombia",
@@ -201,92 +375,18 @@ def ingest_marketplaces_tech() -> dict:
     )
 
 
-def ingest_licenciamiento() -> dict:
-    """
-    Páginas de precios y licenciamiento de fabricantes core de TAK.
-
-    Detecta cambios en modelos de licencia que afectan directamente
-    el portafolio y la rentabilidad de TAK.
-    Crítico: Oracle cambia precios frecuentemente.
-
-    Frecuencia: mensual.
-    """
-    urls = [
-        "https://www.oracle.com/co/cloud/pricing/",
-        "https://www.snowflake.com/en/data-cloud/pricing-options/",
-        "https://azure.microsoft.com/es-co/pricing/",
-        "https://www.redhat.com/es/technologies/linux-platforms/enterprise-linux/licensing",
-        "https://www.ibm.com/co-es/products/software",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "licenciamiento_fabricantes",
-        empresa    = "fabricantes_tak",
-        items_raw  = items_raw,
-        source_url = "precios_oracle_snowflake_azure_redhat_ibm",
-    )
-
-
-def ingest_startups_tech_colombia() -> dict:
-    """
-    Startups tech Colombia — nuevos actores entrando al mercado.
-
-    iNNpulsa y Endeavor son las principales organizaciones que
-    apoyan startups tech en Colombia. Detectar nuevos competidores
-    antes de que se vuelvan relevantes.
-
-    Frecuencia: mensual.
-    """
-    urls = [
-        "https://www.innpulsacolombia.com/noticias",
-        "https://endeavor.org.co/emprendedores/",
-        "https://apps.co/",
-        "https://www.mintic.gov.co/portal/inicio/Noticias/",
-    ]
-    items_raw = fc.scrape_many(urls)
-    return _ingestar(
-        fuente     = "startups_tech_colombia",
-        empresa    = "ecosistema_colombia",
-        items_raw  = items_raw,
-        source_url = "innpulsa_endeavor_appsco_mintic",
-    )
-
-
-def ingest_rss_proveedores() -> dict:
-    """
-    RSS de noticias de proveedores — novedades de fabricantes.
-    Reutiliza los feeds de fabricantes configurados en KIT 3.
-    Frecuencia: mensual.
-    """
-    items_raw = news.get_feeds_by_group("fabricantes", limite=20)
-    return _ingestar(
-        fuente     = "rss_proveedores",
-        empresa    = "fabricantes_tak",
-        items_raw  = items_raw,
-        source_url = "rss_fabricantes_tak",
-    )
-
-
 def ingest_redes_sociales_proveedores() -> dict:
     """
-    X/Twitter — novedades de fabricantes y nuevos proveedores tech.
-
-    Detecta anuncios de productos, alianzas y cambios de estrategia
-    de Oracle, Snowflake, IBM, Red Hat y Microsoft en Latam.
-
-    Frecuencia: mensual.
+    QUÉ HACE:  X/Twitter — novedades de fabricantes por hashtags.
+    ⚠️ OPCIONAL — consume Apify y es ruidoso; fuera del timer.
     """
     from shared.apify_client import ApifyClient, ACTOR_X
     apify_client = ApifyClient()
 
     hashtags = [
-        "#OracleCloud Latam",
-        "#Snowflake Colombia",
-        "#IBMLatam tecnologia",
-        "#RedHat Colombia",
-        "#MicrosoftAzure Colombia",
+        "#OracleCloud Latam", "#Fortinet Colombia", "#AWS Colombia",
+        "#RedHat Colombia", "#MicrosoftAzure Colombia",
     ]
-
     todos_items = []
     for hashtag in hashtags:
         items = apify_client.run_actor(ACTOR_X, {
@@ -314,12 +414,22 @@ def ingest_redes_sociales_proveedores() -> dict:
 # ─────────────────────────────────────────────────────────────
 FUENTES = {
     "web_proveedores_core":         ingest_web_proveedores_core,
-    "marketplaces_tech":            ingest_marketplaces_tech,
     "licenciamiento":               ingest_licenciamiento,
-    "startups_tech_colombia":       ingest_startups_tech_colombia,
+    "noticias_proveedores":         ingest_noticias_proveedores,
     "rss_proveedores":              ingest_rss_proveedores,
+    "startups_tech_colombia":       ingest_startups_tech_colombia,
+    # opcionales (solo HTTP)
+    "marketplaces_tech":            ingest_marketplaces_tech,
     "redes_sociales_proveedores":   ingest_redes_sociales_proveedores,
 }
+
+FUENTES_TIMER = [
+    "web_proveedores_core",
+    "licenciamiento",
+    "noticias_proveedores",
+    "rss_proveedores",
+    "startups_tech_colombia",
+]
 
 
 def _ensure_tables():
@@ -329,22 +439,28 @@ def _ensure_tables():
         log.warning("Tablas de control: %s", ex)
 
 
+def _aplanar(res):
+    """Unos ingestores devuelven dict, otros lista de dicts."""
+    return res if isinstance(res, list) else [res]
+
+
 # ─────────────────────────────────────────────────────────────
-# TRIGGERS — Timer (mensual — primer lunes de cada mes)
+# TRIGGERS — Timer (mensual — día 1 de cada mes)
 # ─────────────────────────────────────────────────────────────
 
 @app.timer_trigger(schedule="0 0 14 1 * *", arg_name="timer", run_on_startup=False)
 def timer_proveedores_mensual(timer: func.TimerRequest) -> None:
     """
-    Todas las fuentes de proveedores — día 1 de cada mes 9:00am Colombia (14:00 UTC).
-    Mensual porque los portafolios y licencias cambian lentamente.
+    Fuentes core de proveedores — día 1 de cada mes 9:00am Colombia (14:00 UTC).
+    marketplaces y redes quedan solo por HTTP.
     """
     _ensure_tables()
-    resultados = {}
-    for nombre_f, fn in FUENTES.items():
-        resultados[nombre_f] = fn()
+    resumen = {}
+    for nombre_f in FUENTES_TIMER:
+        res = FUENTES[nombre_f]()
+        resumen[nombre_f] = len(_aplanar(res))
         time.sleep(2)
-    log.info("Proveedores mensual: %s", resultados)
+    log.info("Proveedores mensual: %s", resumen)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -352,10 +468,11 @@ def timer_proveedores_mensual(timer: func.TimerRequest) -> None:
 # ─────────────────────────────────────────────────────────────
 
 @app.route(route="proveedores/ejecutar", methods=["GET", "POST"])
-def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
+def ejecutar_proveedores(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/proveedores/ejecutar?fuente=web_proveedores_core
-    GET /api/proveedores/ejecutar?fuente=todas
+    GET /api/proveedores/ejecutar?fuente=todas          (solo las del timer)
+    GET /api/proveedores/ejecutar?fuente=marketplaces_tech   (opcional)
     """
     _ensure_tables()
     fuente = req.params.get("fuente", "").lower()
@@ -369,12 +486,14 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     resultados = []
-    targets    = FUENTES.items() if fuente == "todas" else [(fuente, FUENTES[fuente])]
+    if fuente == "todas":
+        targets = [(n, FUENTES[n]) for n in FUENTES_TIMER]
+    else:
+        targets = [(fuente, FUENTES[fuente])]
 
     for nombre_f, fn in targets:
         log.info("Manual proveedores: ejecutando %s", nombre_f)
-        res = fn()
-        resultados.append(res)
+        resultados.extend(_aplanar(fn()))
         time.sleep(1)
 
     return func.HttpResponse(
@@ -384,7 +503,7 @@ def ejecutar(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="proveedores/status", methods=["GET"])
-def status(req: func.HttpRequest) -> func.HttpResponse:
+def status_proveedores(req: func.HttpRequest) -> func.HttpResponse:
     """
     GET /api/proveedores/status
     GET /api/proveedores/status?fuente=web_proveedores_core
@@ -425,8 +544,8 @@ def status(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="proveedores/reset_cursor", methods=["POST"])
-def reset(req: func.HttpRequest) -> func.HttpResponse:
-    """POST /api/proveedores/reset_cursor?fuente=web_proveedores_core&empresa=fabricantes_tak"""
+def reset_proveedores(req: func.HttpRequest) -> func.HttpResponse:
+    """POST /api/proveedores/reset_cursor?fuente=web_proveedores_core&empresa=Oracle"""
     fuente  = req.params.get("fuente", "")
     empresa = req.params.get("empresa", "")
     if not fuente or not empresa:

@@ -1,20 +1,13 @@
 """
 shared/firecrawl_client.py
-==========================
-Cliente para Firecrawl — web scraping para la capa Bronze.
+scraper para paginas web
 
 Reemplaza al actor apify~website-content-crawler.
 
-Ventajas sobre Apify para web:
+Ventajas sobre Apify:
   - Maneja JavaScript y SPAs (React, Angular, Vue)
   - Bypass de protecciones anti-bot (Cloudflare, etc.)
-  - Retorna Markdown limpio — ideal para Silver con IA
-  - 500 páginas/mes gratis — suficiente para 29 empresas semanalmente
-  - API key propia → trazable en local.settings.json
-
-Plan gratuito:
-  500 páginas/mes → 29 empresas × ~6 paths = ~174 páginas/semana
-  Estás dentro del límite con margen.
+  - 500 páginas/mes gratis
 """
 
 import os
@@ -45,8 +38,8 @@ class FirecrawlClient:
         self._key      = api_key or FIRECRAWL_API_KEY
         self._throttle = throttle
         self._headers  = {
-            "Authorization": f"Bearer {self._key}",
-            "Content-Type":  "application/json",
+            "Authorization": f"Bearer {self._key}", #la credencial de acceso a la API de Firecrawl
+            "Content-Type":  "application/json", #el tipo de contenido a enviar
         }
 
     def scrape(self, url: str) -> Optional[dict]:
@@ -54,7 +47,7 @@ class FirecrawlClient:
         Extrae el contenido de una URL individual.
 
         Retorna dict con:
-          - markdown:  contenido limpio en Markdown
+          - markdown:  contenido limpio
           - metadata:  título, descripción, og tags, etc.
           - html:      HTML limpio (opcional)
 
@@ -67,7 +60,7 @@ class FirecrawlClient:
                 headers=self._headers,
                 json={
                     "url":     url,
-                    "formats": ["markdown"],   # solo markdown — suficiente para Bronze
+                    "formats": ["markdown"],   # solo markdown, contenido limpio
                     "onlyMainContent": True,   # descarta nav, footer, banners
                 },
                 timeout=60,
@@ -75,14 +68,29 @@ class FirecrawlClient:
             resp.raise_for_status()
             data = resp.json()
 
-            if not data.get("success"):
+            if not data.get("success"): #para que no se rompa el flujo si falla un scrapeo, se loguea y se retorna None 
                 log.warning("Firecrawl: sin éxito para %s — %s", url, data.get("error"))
                 return None
 
             resultado = data.get("data", {})
+
+            # ── Filtro de calidad: descartar respuestas que NO son 200 ──
+            # Firecrawl pone el código HTTP real en metadata.statusCode.
+            # Las páginas que no existen (404) igual devuelven success=True
+            # con un markdown de "página no encontrada"; este filtro evita
+            # que esa basura entre a Bronze. Aplica a TODAS las fuentes web
+            # (web, noticias, benchmarking) porque todas pasan por aquí.
+            status = (resultado.get("metadata") or {}).get("statusCode")
+            if status is not None and int(status) != 200:
+                log.warning(
+                    "Firecrawl: statusCode %s (no 200) para %s — descartado",
+                    status, url,
+                )
+                return None
+
             log.info(
-                "Firecrawl: %s → %d chars markdown",
-                url, len(resultado.get("markdown") or "")
+                "Firecrawl: %s → %d chars markdown (status %s)",
+                url, len(resultado.get("markdown") or ""), status,
             )
             return resultado
 
@@ -118,8 +126,7 @@ class FirecrawlClient:
 
     def check_credits(self) -> Optional[dict]:
         """
-        Consulta el uso actual de créditos.
-        Útil para monitorear que no se agoten los 500 del plan gratis.
+        Consulta el uso actual de créditos, para monitorear que no se agoten los 500.
         """
         try:
             resp = requests.get(
@@ -139,21 +146,28 @@ class FirecrawlClient:
 # ─────────────────────────────────────────────────────────────
 # Centralizado aquí para que function_competidores.py
 # no tenga que saber qué paths crawlear.
-
+# web_paths es la lista de rutas que se van a mirar de cualquier empresa.
+#
+# Lista RECORTADA: solo rutas que responden a un KIN de competidores y que
+# la web es la ÚNICA fuente capaz de dar (portafolio y alianzas).
+#   ""          home          -> posicionamiento / propuesta de valor  (KIN 2, 3)
+#   /servicios  /services     -> portafolio de servicios               (KIN 1, 2)
+#   /soluciones               -> soluciones por industria              (KIN 1, 2)
+#   /partners   /socios       -> alianzas / fabricantes                (KIN 4)
+#   /tecnologia               -> stack tecnológico y partners          (KIN 4)
+#
+# Quitadas a propósito:
+#   /noticias /news /blog     -> ahora vía Google News (gratis, sin 404)
+#   /casos-de-exito /case-studies /clientes -> nombres muy variables,
+#                                generaban la mayoría de los 404 y aportan poco.
 WEB_PATHS = [
     "",                  # home — descripción general, propuesta de valor
     "/servicios",        # servicios principales
-    "/soluciones",       # soluciones por industria
     "/services",         # versión en inglés
-    "/noticias",         # noticias y comunicados
-    "/news",
-    "/blog",
-    "/casos-de-exito",   # casos de éxito
-    "/clientes",
-    "/case-studies",
+    "/soluciones",       # soluciones por industria
+    "/partners",         # alianzas / fabricantes
+    "/socios",           # alianzas (español)
     "/tecnologia",       # stack tecnológico y partners
-    "/partners",
-    "/socios",
 ]
 
 

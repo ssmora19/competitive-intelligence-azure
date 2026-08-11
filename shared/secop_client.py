@@ -67,7 +67,7 @@ KEYWORDS_TAK = (
     KEYWORDS_GENERALES
 )
 
-DEFAULT_LIMIT    = 100
+DEFAULT_LIMIT    = 30
 DEFAULT_THROTTLE = 1
 
 
@@ -89,24 +89,42 @@ class SecopClient:
         }
 
     def _get(self, dataset: str, params: dict) -> list[dict]:
-        """GET a la API de Datos Abiertos — sin API key."""
+        """
+        GET a la API de Datos Abiertos — sin API key.
+
+        Robustez ante la lentitud de datos.gov.co:
+          - timeout corto (25s) para no colgarse esperando un minuto.
+          - 1 reintento rapido si hay timeout/conexion (datos.gov.co es intermitente).
+          - ante cualquier fallo devuelve [] (nunca tumba la funcion que lo llama).
+        """
         url = f"{SECOP_BASE}/{dataset}.json"
-        try:
-            log.info("SECOP: consultando %s", dataset)
-            resp = requests.get(
-                url, params=params,
-                headers=self._headers, timeout=60,
-            )
-            resp.raise_for_status()
-            items = resp.json()
-            log.info("SECOP: %d registros de %s", len(items), dataset)
-            return items
-        except requests.HTTPError as ex:
-            log.error("SECOP HTTP error [%s]: %s", dataset, ex)
-            return []
-        except Exception as ex:
-            log.error("SECOP error [%s]: %s", dataset, ex)
-            return []
+        intentos = 2                      # 1 intento + 1 reintento
+        for intento in range(1, intentos + 1):
+            try:
+                log.info("SECOP: consultando %s (intento %d)", dataset, intento)
+                resp = requests.get(
+                    url, params=params,
+                    headers=self._headers, timeout=25,
+                )
+                resp.raise_for_status()
+                items = resp.json()
+                log.info("SECOP: %d registros de %s", len(items), dataset)
+                return items
+            except (requests.Timeout, requests.ConnectionError) as ex:
+                log.warning("SECOP timeout/conexion [%s] intento %d: %s",
+                            dataset, intento, ex)
+                if intento < intentos:
+                    time.sleep(2)         # respiro antes de reintentar
+                    continue
+                log.error("SECOP sin respuesta [%s] tras %d intentos", dataset, intentos)
+                return []
+            except requests.HTTPError as ex:
+                log.error("SECOP HTTP error [%s]: %s", dataset, ex)
+                return []
+            except Exception as ex:
+                log.error("SECOP error [%s]: %s", dataset, ex)
+                return []
+        return []
 
     def _build_keyword_filter(
         self,
@@ -232,6 +250,76 @@ class SecopClient:
         items = self._get(DATASET_CONTRATOS, params)
         for item in items:
             item["_competidor_buscado"] = nombre_empresa
+        return items
+
+    def get_procesos_por_entidad(
+        self,
+        nombre_entidad: str,
+        limite:         int = 30,
+    ) -> list[dict]:
+        """
+        Procesos/licitaciones donde la ENTIDAD COMPRADORA coincide.
+        Dataset: p6dx-8zbt (Procesos). Campo comprador: 'entidad'.
+
+        Sirve para clientes PUBLICOS (que compran TI). Devuelve [] si el
+        nombre viene vacio. Reusa self._get (que ya maneja los errores).
+        """
+        if not nombre_entidad or not nombre_entidad.strip():
+            return []
+        seguro = nombre_entidad.strip().replace("'", "''")
+
+        params = {
+            "$where":  f"entidad like '%{seguro}%'",
+            "$limit":  limite,
+            "$order":  "fecha_de_publicacion_del DESC",
+            "$select": (
+                "id_del_proceso,estado_del_procedimiento,"
+                "estado_de_apertura_del_proceso,estado_resumen,"
+                "entidad,departamento_entidad,ciudad_entidad,"
+                "descripci_n_del_procedimiento,tipo_de_contrato,"
+                "modalidad_de_contratacion,precio_base,"
+                "fecha_de_publicacion_del,fecha_de_ultima_publicaci,"
+                "urlproceso"
+            ),
+        }
+        items = self._get(DATASET_PROCESOS, params)
+        for item in items:
+            item["_entidad_buscada"] = nombre_entidad
+        return items
+
+    def get_contratos_por_entidad(
+        self,
+        nombre_entidad: str,
+        limite:         int = 30,
+    ) -> list[dict]:
+        """
+        Contratos adjudicados donde la ENTIDAD COMPRADORA coincide.
+        Dataset: jbjy-vk9h (Contratos). Campo comprador: 'nombre_entidad'.
+
+        Sirve para clientes PUBLICOS (que compran TI). Devuelve [] si el
+        nombre viene vacio. Reusa self._get (que ya maneja los errores).
+        """
+        if not nombre_entidad or not nombre_entidad.strip():
+            return []
+        seguro = nombre_entidad.strip().replace("'", "''")
+
+        params = {
+            "$where":  f"nombre_entidad like '%{seguro}%'",
+            "$limit":  limite,
+            "$order":  "fecha_de_firma DESC",
+            "$select": (
+                "referencia_del_contrato,estado_contrato,"
+                "nombre_entidad,departamento,ciudad,"
+                "descripcion_del_proceso,objeto_del_contrato,"
+                "tipo_de_contrato,valor_del_contrato,"
+                "fecha_de_firma,fecha_de_inicio_del_contrato,"
+                "fecha_de_fin_del_contrato,proveedor_adjudicado,"
+                "nit_entidad,urlproceso"
+            ),
+        }
+        items = self._get(DATASET_CONTRATOS, params)
+        for item in items:
+            item["_entidad_buscada"] = nombre_entidad
         return items
 
     def throttle(self) -> None:
