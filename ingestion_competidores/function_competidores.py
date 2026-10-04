@@ -535,6 +535,7 @@ def ingest_secop_competidores(companies: list[dict],
         items_raw = secop.get_contratos_competidor(
             nombre_empresa = nombre,
             limite         = 50,
+            secop_nombres  = company.get("secop_nombres"),
         )
 
         if items_raw:

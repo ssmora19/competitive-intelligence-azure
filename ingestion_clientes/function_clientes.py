@@ -359,14 +359,18 @@ def ingest_secop_licitaciones() -> dict:
 def ingest_linkedin_jobs() -> dict:
     """
     QUÉ HACE:  busca ofertas de empleo TI en Colombia (LinkedIn Jobs vía Apify).
-    PARA QUÉ:  si una empresa busca Oracle DBA / Snowflake, es cliente potencial.
-    Actor: valig~linkedin-jobs-scraper (gratuito, sin cookies).
+    PARA QUÉ:  si una empresa busca Oracle DBA / Exadata / BI, es cliente potencial.
+    Actor: valig~linkedin-jobs-scraper (rápido y barato ~$0.11 la corrida).
+
+    NOTA DE DISEÑO (migración de proveedores):
+      Los posts de competidores se migraron a Bright Data por costo, PERO jobs
+      se mantiene en Apify: la búsqueda por keyword en Bright Data resultó lenta
+      (>8 min, choca con el límite de 10 min de Azure Functions) y consumía
+      muchos créditos. Apify hace esta búsqueda rápido y barato. Estrategia
+      híbrida: cada proveedor donde es más eficiente.
     """
     # Palabras clave derivadas del portafolio REAL de TAK (su web: servicios +
     # industrias). Empresas que contratan estos perfiles = clientes potenciales.
-    #   - Núcleo Oracle (lo más distintivo de TAK): DBA, Exadata, ODI, BD Oracle
-    #   - Servicios fuertes transversales: BI/Power BI, Machine Learning,
-    #     ciberseguridad, infraestructura cloud
     keywords = [
         "Oracle DBA", "Exadata", "Oracle Data Integrator", "base de datos Oracle",
         "Business Intelligence", "Power BI", "Machine Learning",

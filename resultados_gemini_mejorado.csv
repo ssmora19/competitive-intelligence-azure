@@ -1,0 +1,81 @@
+﻿id,titulo,tema_real,sent_real,rel_real,tema_reglas,sent_reglas,g_tema,g_sent,g_rel
+626e7910de6f986da01b75257a53871301b4a8fe436f87559c24d5fa73cbb1b4,Esto es Bmind,contenido_corporativo,neutro,si,contenido_audiovisual,neutro,contenido_corporativo,neutro,si
+4fdb6cd63d3648ca3323a232b6d2e93e6c44c7cc1c451bcbb823bbeb712c2215,"Happy International Intern Day! Around the globe, ",contenido_corporativo,positivo,si,contenido_corporativo,neutro,contenido_corporativo,positivo,no
+9b0ae4a3925f607ccef0f8c249521c0f24c52232ea71467fc824138fa9b8c96d,"Claro Colombia, líder del sector de tecnología en ",noticia,positivo,si,inversion,positivo,contenido_corporativo,positivo,no
+99c7dc5ffb2c2cc501c526728b7da28787aec06b9c536d8d04307e25f2df3dae,"Meet Wei, a Forward Deployed Engineer (FDE) at Goo",contenido_corporativo,neutro,si,contenido_corporativo,neutro,demanda_talento,neutro,no
+f94237fbe22e5b06ed8dacb82e9e7ae63b437f07b607d84ea6472d863e3af0cc,Today Google Cloud announced an expansion of their,alianza,neutro,si,expansion,neutro,alianza,neutro,no
+c58271b75d3d94d77b768d80fea0565b4a52303a575f09b511ce2b05d7f7aae4,"Grupo Éxito dispara su utilidad 31,6% y alcanza $3",noticia,positivo,no,noticia,positivo,noticia,positivo,no
+b5a07b4c08799a7828d49e852ca95979527e97cedfee4acb47c911a59ca07865,“Building the physical infrastructure for America’,contenido_corporativo,neutro,si,lanzamiento,neutro,alianza,neutro,no
+c71a4d3c37cbea72adaded441b464f02c779cf9c9dc2f1bca8db59de381d0e8c,"Monika, a PhD graduate and software engineer in ou",contenido_corporativo,neutro,si,contenido_corporativo,neutro,demanda_talento,neutro,no
+6a66999c7a9b8afe371fb5b0cc9b896389ad54a65b79696373af97d12f8d070b,Alpina 2035: Reinventando el valor en la industria,contenido_corporativo,neutro,no,contenido_audiovisual,positivo,contenido_audiovisual,neutro,no
+d136c7f37f7f647fbcfcb3d8bec7c1b43cf04ebd2e68c06877a82e7e878a806b,What makes a great technical interview at Google? ,contenido_corporativo,neutro,si,contenido_corporativo,neutro,demanda_talento,neutro,no
+b0ea439d656d14de208b13a9a08f7ca25db82893598c415a15bdfce9098e44a8,"Step inside Sail Tower, our newest Austin, Texas o",contenido_corporativo,neutro,si,contenido_corporativo,neutro,expansion,positivo,no
+605fb8d02bb6f07bfaad935dc29fa1197b00b12a3a44c7a8ff3027a8aed582b5,"""There's something magical that happens when you d",contenido_corporativo,positivo,si,contenido_corporativo,neutro,contenido_corporativo,neutro,no
+6613bc9cb7a53193cd639b6cb0f2a69db1c45b5ac6bbf82bbc7755a3da7816cc,Xerox transfiere sus operaciones de Perú y Ecuador,alianza,neutro,si,noticia,neutro,inversion,neutro,si
+22682dc6a6533aa99e7b6fc8b366e38b37f382617d45d2cf190d92fcd7a0b7ad,La Feria de Flores tiene ese no sé qué que nos cam,contenido_corporativo,positivo,no,contenido_corporativo,neutro,contenido_corporativo,positivo,no
+39f9ccc6aa011759482d43c8ebbd0ef47dd04b1192a29a681d0a9e4a0b179dcc,We’re launching the first iteration of the AI & Ec,lanzamiento,neutro,si,lanzamiento,neutro,lanzamiento,neutro,no
+156d6787b2f44df865abfbf82e753d7ce4d4bf0129bc67360da91399b97c6882,Want the latest updates in the Gemini app? Here’s ,lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,neutro,no
+d058e209de665a580b457d42711fa27d9fd03d2059c7b9780afd7f5064ae4a68,Súper oferta,lanzamiento,neutro,si,contenido_audiovisual,neutro,referencia_web,neutro,no
+31edda1e096e091fa7d8e38a51ff9905431732fa0cf64454b98b125ed8fe6038,What does it take to keep the internet running? Da,contenido_corporativo,neutro,si,expansion,neutro,contenido_audiovisual,neutro,no
+1a7a9d051ce67138b3aca7a4cb83b92ddb85afce3a1c644991819dcabd4ef052,Agentic commerce: Make your brand unmissable,contenido_corporativo,neutro,si,contenido_audiovisual,neutro,contenido_audiovisual,neutro,si
+10efd67d5a184dd86286cfc96f5f9298b6befc4503815c7f39666bb24ea54736,The next generation of Pixel phones is here — plus,lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+16650ec2e523ef3ed482c685f5e421b458ca3d9a313ec93cd915a810f4c17c5b,This week at Cannes Lions International Festival o,contenido_corporativo,neutro,si,regulatorio,neutro,contenido_corporativo,neutro,no
+03d5f09cd8479912050314c91fa977b3c7f10e6564ed5c38e0a4f6b3a0c01b6e,Today we're releasing two generative media models ,lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+4d87cd3987ceb6491adbf2f78a928fdf8b2b4819aa5372163eaa01ead5a4e1ac,Gobernación de Antioquia entregó iluminación para ,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+2c7c6a9ed6fa3c5f3f5d4fbdde8cd70129f1a34aec3db3f3746f9b50f48cdf11,"Work smarter, not harder this summer. With our new",lanzamiento,neutro,si,lanzamiento,neutro,lanzamiento,neutro,no
+4843803ffa3c127f21fee311683c037c4cc90e506fce51b6a62569fd95feb45a,¿Qué es el SETI? La geopolítica de la búsqueda de ,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+a827258237371fa1590aacda9952779c29ab83ce383ff8aefca7df8c451d4b61,SLM Cloud obtiene la Trinorma ISO en cinco países ,regulatorio,positivo,si,regulatorio,positivo,regulatorio,positivo,si
+eae61f02edd6f373e76f18432ccb4c44e5fae4f0c5f4fbde1466d1cce1ffebf6,ALIee OnePoint: Entidades Cognitivas Autónomas que,lanzamiento,neutro,si,contenido_audiovisual,neutro,lanzamiento,positivo,no
+58036c1432e31d4cfdce6363dec923ad3e81b0fb05e5abe32a2ce3f6e23cd458,Weekly Recap: KBW upgrades RWT and Citizens trims ,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+583fd9e29d34e25003035380c146d15ac2330cdd84c39d21d317f1e9316df804,Gemini Omni makes creating videos as easy as havin,lanzamiento,neutro,si,lanzamiento,neutro,lanzamiento,positivo,no
+3a5571f98e5675fdebd05b5f9c89d92d2b6f3e99ebd7d39666bf0d2a2fa9e61c,Fundación Bancolombia recauda más de $6.600 millon,noticia,positivo,no,noticia,neutro,contenido_corporativo,neutro,no
+615cbb41ece0e54289d019d0add20b616e1a62d74c2a7eec1602ca327415c46c,Inscríbete en el RUNT,noticia,neutro,no,noticia,neutro,referencia_web,neutro,no
+b2ac3428063b03ac535534dd7658ed8c66d862656b125794515fe27fe683496f,"Menos restricciones, más cobertura: el enfoque de ",noticia,neutro,no,noticia,neutro,contenido_corporativo,neutro,no
+575918377af01dea87bcc141f2669295a86ab64359d14f04bf5e596b904d1117,Why proprietary software isn’t a retrospective tre,noticia,neutro,si,noticia,neutro,contenido_corporativo,neutro,no
+621eb0efd6e5d1e401afa20f34791a8db098f89f35d785bc317e6007b1ea1e60,"In a new policy paper released today, Kent Walker ",regulatorio,neutro,si,contenido_corporativo,neutro,regulatorio,neutro,no
+abb73e3b2fe21db53297d9d37e75c6e51b166fc0e30136056d384990e7626716,CEO de Movistar Colombia confirma cierre de ciclo ,noticia,negativo,si,noticia,negativo,inversion,negativo,si
+fcc6c3fef9b695ce3a6648ccaad813fa1b2327d5516fd9b6e1abc54d2d005db7,Gobierno Nacional pone en marcha Plan para preveni,regulatorio,neutro,no,noticia,neutro,regulatorio,neutro,no
+723a44ca9e7f2c56503ad2b77a6ba4aba4097f6f66b7dc5839bb810541337bae,Positiva Seguros: liderazgo y expansión hacia nuev,expansion,positivo,no,expansion,positivo,expansion,neutro,si
+0742af2fb4096e9a29569b38b7176e7def0a84f582bf0e84d3d58874dbd68a7f,Bancolombia Capital: Más de US$700M en activos ges,inversion,neutro,no,inversion,neutro,inversion,neutro,si
+0267cb2240aca48f97ff7155aed91b85226cd4b59dc58890c9eda891621ca100,Orange Business y Tech Mahindra anuncian alianza e,alianza,neutro,si,alianza,neutro,alianza,neutro,si
+3018620e067eb2722b9e57b0ec30952b7ec0a8ff154c4665f20f739b727ea8ba,Señales de civilizaciones interestelares podrían e,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+03ee8e7af83ba55783352f1d4523e4efb07b9e50894afaba41b821ae705aa9c2,This week at Cannes Lions International Festival o,contenido_corporativo,neutro,si,regulatorio,neutro,contenido_corporativo,neutro,no
+6d74bb679e7c9c06b4abe30bb1aa3de2c4f078394bd005d330276ccb20194e71,"""True technical leadership isn't about making tech",contenido_corporativo,neutro,si,contenido_corporativo,neutro,contenido_corporativo,neutro,no
+94d1276ead77ce67cf9f94ecf4d8fba10ae53ba06624b4a03a149346cb5298bf,"Introducing Pixel Tag, our first-ever finder tag. ",lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+edf62c4cdc24ab13cfda60565e499aad3c1b5501b866bb78255af8123610c2d4,"""With AI the art of the possible has really change",contenido_corporativo,positivo,si,contenido_corporativo,positivo,contenido_corporativo,neutro,no
+86ab2301d1e16d7aed270ff2b74f8d32cd9624fc85fa596174ba90afdc607b4a,Great teaching is built on the human connection be,contenido_corporativo,neutro,si,alianza,neutro,lanzamiento,neutro,no
+d04bb56f0b41408555af7b30cffd7eaa7f02f915fc50c6ffb4855f8471665be4,"For over 60 years, Pelé Brand’s legendary ""lost go",contenido_corporativo,positivo,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+238eb2c15c432fa68c24f8ca3466b9162f4d5f05499d07e23231121e2c7de04f,Anthropic signs $10B deal with AI cloud startup Vo,inversion,neutro,si,alianza,neutro,alianza,neutro,no
+d1dc50e063d4fd6ccf344b2fe690c0e07268fc1001709d421232a29e91ee0a66,Harper Argues Against the Multi-System Stack and R,noticia,neutro,si,noticia,neutro,lanzamiento,neutro,no
+a79523096d848724ba60daa3dcaa444676affd4f4ad67fc843446ec25b7866c7,Colombia acelera exportación de servicios digitale,noticia,neutro,si,noticia,neutro,noticia,neutro,no
+9ff3d589f66b04b45b064bafdf7a567a55a287d27bc24be41961ea9548ff2ae0,"Transformación digital, clave para competir en el ",noticia,neutro,si,noticia,positivo,contenido_corporativo,neutro,si
+88e7324d3fb67338eafcf93d8ed41820641b4e6f84f2df6e46baba44499ec57e,Gemini Omni makes creating videos as easy as havin,lanzamiento,neutro,si,lanzamiento,neutro,lanzamiento,positivo,no
+0a6e6a6abc023b682eb0f0a948cb5b24c09c44ba0780946c304ba42c2173877e,Anyone can prompt. Shipping to production is a dif,lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,si
+2c2ee66582a1b4bdb719028ea7ec2b2c3090b98e471430a249dbd52038fef0a1,Gemini Intelligence is designed to make your daily,lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+9e7c4f5d7fe7c6e6a25cbdeabceff35010f9403f3ebe4766f522cd246fbcc313,IBM se alía con OpenAI para acelerar el despliegue,alianza,neutro,si,noticia,neutro,alianza,neutro,si
+feacb0c552ed502cf467f1aa3f7a7ec608d9aa126fc52304277b4aef2f735491,Alcaldía de Bogotá impulsa jornada de voluntariado,noticia,positivo,no,noticia,positivo,contenido_corporativo,neutro,no
+b2a34155933a881cc846708fc99b1798cb6377a2b52b84419671502546ee1f77,KD|Kyndryl Holdings Inc|Precio:13.520|Variación %:,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+8d676b9532063df0cd57567485c8489e5c18cfc8b2ceca06aab504e3ff1749d3,La pobreza monetaria en Colombia alcanza 28 % en 2,noticia,negativo,no,noticia,neutro,noticia,negativo,no
+d2e6bc056846c818485deb7f20f1adfb39681163fe13913b5ea768fe820b3550,Adaptarse al cambio climático no es solo responsab,contenido_corporativo,neutro,si,contenido_corporativo,neutro,contenido_corporativo,neutro,no
+7049e421f51d4f1aefc98ffaa49dc039ce31b75b8f049ff1dab9e70f204e5005,"Jockey Skimmies Slipshort Paquete De 3 Para Mujer,",noticia,neutro,no,noticia,neutro,referencia_web,neutro,no
+3a6fa3b288e617f9e047301552a8fbae41624b76f27c8f7b4e501be66cad271b,"Atentado contra batallón del Ejército en Riohacha,",noticia,negativo,no,noticia,neutro,noticia,negativo,no
+2cac4188216951ef9a8aadbb86b38ff437f0b0c345a020fa41fa38c849a7e491,Gemini 3.6 Flash and 3.5 Flash-Lite are helping bu,contenido_corporativo,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+6c1b56fd573e1487ab23490da451553016b8d186584bdca11dfe9c10855bdefc,Presidente de Bancolombia se pronuncia tras terrem,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+e4508d4859ce2a1e2ea7232c25d7af9bf383ce79b110c955372dabe95d345844,"What are AI ""Loops""? (And why people say prompting",contenido_corporativo,neutro,si,contenido_audiovisual,neutro,actividad_tecnica,neutro,no
+fd775f67d4c3621293b54dbbb44456828f018027d8fef039d7b2e33472323421,"IBM’s cloud collab, Meta’s Muse Glimmer & OpenAI’s",noticia,neutro,si,contenido_audiovisual,neutro,alianza,neutro,si
+6fb71dc59ed90e0e0de58cfc90683729e1e9a9ca365bfd19589b2417b77f408f,Buen semestre para las exportaciones del Valle; Da,noticia,positivo,no,noticia,neutro,noticia,neutro,no
+692ac885e16a52095f079be473c42860127a3cabf0a8e865579032bd0bf7cafa,Meet Gemini Robotics 2: the next era of truly adap,lanzamiento,neutro,si,contenido_corporativo,neutro,lanzamiento,positivo,no
+105db539a22abf05b965094e18cf9fe61ef6b1e261b1517763eadfb2fea9e9f4,Policía incauta 200 kilos de cocaína y un vehículo,noticia,negativo,no,noticia,neutro,noticia,negativo,no
+3e4a4457a37b34a43d810b431c4cf2d27c7118924a072774cdf72bf45655bfff,Conoce a las Mejores Empresas Colombianas 2025,noticia,neutro,si,noticia,neutro,contenido_corporativo,neutro,no
+a49b1021f1f067cf8ca87727bf055be93325ca07e5a4564306ccc09c69d91a79,Bogotá tendrá un nuevo escenario musical: así es V,noticia,neutro,no,noticia,neutro,lanzamiento,neutro,si
+286d180444664ef6f52b4389ff91d0d0162ac731a61c1c4fcd1a36432ca2dcac,✨ En un entorno donde las expectativas del talento,contenido_corporativo,neutro,si,alianza,neutro,contenido_corporativo,neutro,no
+8e2873e5ae4a6d427939966258992a792c496ac01e6e92550e00661bf0de2df7,SLM en el 13° Congreso de Ciencias de la Salud 202,contenido_corporativo,neutro,si,contenido_audiovisual,positivo,contenido_corporativo,neutro,si
+d41dee9241195e40e5a154d8a486bacce4e23ba1c22e0ee7995f895ff0eb8c79,"Ramón Cañete, nuevo ‘partner’ de Bmind-Jakala",noticia,neutro,si,noticia,neutro,demanda_talento,neutro,si
+592738efe9eb042091e54dd5f17e985532c78e0950bb8c80abba7fb4cf5e0c46,Tech Mahindra shares gain 2.14% in today's trade,noticia,neutro,no,noticia,neutro,noticia,neutro,no
+774afec2a50da740a7618da758d5a4f92e48949bebffed90ac5da60a1617a56b,Indra impulsa una nueva planta de producción de ve,expansion,neutro,no,noticia,positivo,expansion,positivo,si
+1ae6c511d405dc63a49a734ab3de6ecfed86d80f771b054979e9624285b83129,The best part about landing an internship as part ,contenido_corporativo,positivo,si,contenido_corporativo,positivo,demanda_talento,neutro,no
+c83567716deaffc7acc05bae5a61b3b00a99d052cc7abf4f3f5bed6e4fc48c8e,Ecopetrol avanza en la compra de Brava tras adquir,inversion,neutro,no,inversion,neutro,inversion,neutro,si
+531996aa9c657b9de17344518d03c9b8a4ae15e66510116c2f45f12890a41e10,"For the third year in a row, we have been recogniz",contenido_corporativo,positivo,si,lanzamiento,neutro,contenido_corporativo,positivo,no
+bb73c3ddbf39f3fbfd326dcf2986b8ebf6b182d7cb8aecfc9cd94af592b6b507,Get an introduction to the fundamentals of AI Agen,contenido_corporativo,neutro,si,contenido_corporativo,neutro,actividad_tecnica,neutro,no
+cc7cd12df60b5e7361d911633f85bd53f833aa9bc615c1d50e74576ef0dd2a85,Nace en Galicia una empresa biotecnológica especia,noticia,neutro,no,noticia,neutro,lanzamiento,neutro,no
+6fdb85ab9354a37e5f919000f2927433954bfdd2d9a007b0a145e80194eda99b,Xiaomi reveló más pistas de sus próximos carros hí,lanzamiento,neutro,no,lanzamiento,neutro,lanzamiento,neutro,no

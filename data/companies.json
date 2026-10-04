@@ -1,11 +1,13 @@
 [
     {
         "nombre": "Accenture",
+        "secop_nombres": [],
+        "noticias_query": "Accenture Colombia",
         "website": "https://www.accenture.com/co-es",
         "web_urls": [
-        "https://www.accenture.com/co-es/about/song-client-stories-index",
-        "https://www.accenture.com/co-es/services",
-        "https://www.accenture.com/co-es/services/ecosystem-partners"
+            "https://www.accenture.com/co-es/about/song-client-stories-index",
+            "https://www.accenture.com/co-es/services",
+            "https://www.accenture.com/co-es/services/ecosystem-partners"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/accenture/",
@@ -18,12 +20,14 @@
     },
     {
         "nombre": "IBM Corporation",
+        "secop_nombres": [],
+        "noticias_query": "IBM Colombia",
         "website": "https://www.ibm.com/mx-es",
         "web_urls": [
-        "https://www.ibm.com/services",
-        "https://www.ibm.com/partnerplus/directory/companies?field_keyword_03[0]=Colombia",
-        "https://www.ibm.com/es-es/products/maximo/case-studies",
-        "https://developer.ibm.com/technologies/"
+            "https://www.ibm.com/services",
+            "https://www.ibm.com/partnerplus/directory/companies?field_keyword_03[0]=Colombia",
+            "https://www.ibm.com/es-es/products/maximo/case-studies",
+            "https://developer.ibm.com/technologies/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/ibm/",
@@ -36,12 +40,18 @@
     },
     {
         "nombre": "Deloitte",
+        "secop_nombres": [
+            "Deloitte & Touche S.A.S",
+            "Deloitte & Touche Ltda.",
+            "Deloitte Asesores y Consultores S.A.S"
+        ],
+        "noticias_query": "Deloitte Colombia",
         "website": "https://www.deloitte.com/latam/es.html",
         "web_urls": [
-        "https://www.deloitte.com/es/es/services.html",
-        "https://www.deloitte.com/es/es/Industries/technology.html",
-        "https://www.deloitte.com/es/es/alliances.html",
-        "https://www.deloitte.com/in/en/services/consulting/solutions/client-success-stories.html"
+            "https://www.deloitte.com/es/es/services.html",
+            "https://www.deloitte.com/es/es/Industries/technology.html",
+            "https://www.deloitte.com/es/es/alliances.html",
+            "https://www.deloitte.com/in/en/services/consulting/solutions/client-success-stories.html"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/deloitte_colombia/",
@@ -54,11 +64,15 @@
     },
     {
         "nombre": "Tech Mahindra",
+        "secop_nombres": [
+            "TECH MAHINDRA COLOMBIA S.A.S."
+        ],
+        "noticias_query": "Tech Mahindra",
         "website": "https://www.techmahindra.com",
         "web_urls": [
-        "https://www.techmahindra.com/our-capabilities/",
-        "https://www.techmahindra.com/industries/",
-        "https://www.techmahindra.com/alliance/"
+            "https://www.techmahindra.com/our-capabilities/",
+            "https://www.techmahindra.com/industries/",
+            "https://www.techmahindra.com/alliance/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/techmahindra_official/",
@@ -68,16 +82,22 @@
         "youtube_handle": "@TechMahindra_Official",
         "x": "https://x.com/tech_mahindra",
         "threads": "https://www.threads.com/@techmahindra_official"
-
     },
     {
         "nombre": "PricewaterhouseCoopers (PwC)",
+        "secop_nombres": [
+            "PRICEWATERHOUSECOOPERS AG S.A.S.",
+            "PRICEWATERHOUSECOOPERS ASESORES GERENCIALES SAS",
+            "PricewaterhouseCoopers Ltda",
+            "PricewaterhouseCoopers Servicios Legales y Tributarios Ltda"
+        ],
+        "noticias_query": "PwC PricewaterhouseCoopers Colombia",
         "website": "https://www.pwc.com/co/es.html",
         "web_urls": [
-        "https://www.pwc.com/co/es/nuestros-servicios.html",
-        "https://www.pwc.com/gx/en/industries/technology.html",
-        "https://www.pwc.com/us/en/library/case-studies.html",
-        "https://www.pwc.com/gx/en/1/services/alliances.html"
+            "https://www.pwc.com/co/es/nuestros-servicios.html",
+            "https://www.pwc.com/gx/en/industries/technology.html",
+            "https://www.pwc.com/us/en/library/case-studies.html",
+            "https://www.pwc.com/gx/en/1/services/alliances.html"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/pwc_colombia/",
@@ -90,11 +110,15 @@
     },
     {
         "nombre": "Capgemini",
+        "secop_nombres": [
+            "CAPGEMINI COLOMBIA"
+        ],
+        "noticias_query": "Capgemini Colombia",
         "website": "https://www.capgemini.com",
         "web_urls": [
-        "https://www.capgemini.com/es-es/sobre-nosotros/alianzas/",
-        "https://www.capgemini.com/co-es/servicios/",
-        "https://www.capgemini.com/co-es/news/client-stories/"
+            "https://www.capgemini.com/es-es/sobre-nosotros/alianzas/",
+            "https://www.capgemini.com/co-es/servicios/",
+            "https://www.capgemini.com/co-es/news/client-stories/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/capgemini/",
@@ -107,11 +131,16 @@
     },
     {
         "nombre": "KPMG",
+        "secop_nombres": [
+            "KPMG",
+            "KPMG SAS"
+        ],
+        "noticias_query": "KPMG Colombia",
         "website": "https://kpmg.com/co/es/home.html",
         "web_urls": [
-        "https://kpmg.com/co/es/servicios.html",
-        "https://kpmg.com/co/es/industries.html",
-        "https://kpmg.com/co/es/conocenos/alianzas.html"
+            "https://kpmg.com/co/es/servicios.html",
+            "https://kpmg.com/co/es/industries.html",
+            "https://kpmg.com/co/es/conocenos/alianzas.html"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/kpmgcolombia/",
@@ -124,13 +153,15 @@
     },
     {
         "nombre": "Tata Consultancy Services",
+        "secop_nombres": [],
+        "noticias_query": "Tata Consultancy Services TCS",
         "website": "https://www.tcs.com",
         "web_urls": [
-        "https://www.tcs.com/what-we-do/services/ai-data-and-analytics",
-        "https://www.tcs.com/what-we-do/services/cloud",
-        "https://www.tcs.com/what-we-do/services/cybersecurity",
-        "https://www.tcs.com/insights/customer-stories",
-        "https://www.tcs.com/who-we-are/alliances-partnerships"
+            "https://www.tcs.com/what-we-do/services/ai-data-and-analytics",
+            "https://www.tcs.com/what-we-do/services/cloud",
+            "https://www.tcs.com/what-we-do/services/cybersecurity",
+            "https://www.tcs.com/insights/customer-stories",
+            "https://www.tcs.com/who-we-are/alliances-partnerships"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/tcsglobal/",
@@ -143,12 +174,14 @@
     },
     {
         "nombre": "NTT DATA Group Corporation",
+        "secop_nombres": [],
+        "noticias_query": "NTT DATA Colombia",
         "website": "https://co.nttdata.com",
         "web_urls": [
-        "https://co.nttdata.com/services",
-        "https://es.nttdata.com/alliances",
-        "https://es.nttdata.com/case-studies",
-        "https://www.nttdata.com/global/en/insights/technology"
+            "https://co.nttdata.com/services",
+            "https://es.nttdata.com/alliances",
+            "https://es.nttdata.com/case-studies",
+            "https://www.nttdata.com/global/en/insights/technology"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/nttdata.latam",
@@ -161,11 +194,15 @@
     },
     {
         "nombre": "Kyndryl",
+        "secop_nombres": [
+            "Kyndryl"
+        ],
+        "noticias_query": "Kyndryl Colombia",
         "website": "https://www.kyndryl.com/co/es",
         "web_urls": [
-        "https://www.kyndryl.com/co/es/services",
-        "https://www.kyndryl.com/co/es/about-us",
-        "https://www.kyndryl.com/co/es/consulting"
+            "https://www.kyndryl.com/co/es/services",
+            "https://www.kyndryl.com/co/es/about-us",
+            "https://www.kyndryl.com/co/es/consulting"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/kyndrylglobal/",
@@ -178,14 +215,18 @@
     },
     {
         "nombre": "SETI",
+        "secop_nombres": [
+            "Servicios Especializados de Tecnologia E Informatica"
+        ],
+        "noticias_query": "SETI Servicios Especializados Tecnologia Informatica",
         "website": "https://seti.com.co",
         "web_urls": [
-        "https://seti.com.co/elementor-pagina-223/",
-        "https://seti.com.co/aliados/",
-        "https://seti.com.co/afinacion-y-desarrollo/",
-        "https://seti.com.co/datasimple/",
-        "https://seti.com.co/servicios-cloud/",
-        "https://seti.com.co/operaciones-de-ti/"
+            "https://seti.com.co/elementor-pagina-223/",
+            "https://seti.com.co/aliados/",
+            "https://seti.com.co/afinacion-y-desarrollo/",
+            "https://seti.com.co/datasimple/",
+            "https://seti.com.co/servicios-cloud/",
+            "https://seti.com.co/operaciones-de-ti/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/seticolombia/",
@@ -198,10 +239,14 @@
     },
     {
         "nombre": "IT CROWD",
+        "secop_nombres": [
+            "IT CROWD S.A.S"
+        ],
+        "noticias_query": "IT CROWD SAS software Colombia",
         "website": "https://www.it-crowd.co",
         "web_urls": [
-        "https://www.it-crowd.co/oracle-service-partner/",
-        "https://www.it-crowd.co/sistemas-de-ingenieria/"
+            "https://www.it-crowd.co/oracle-service-partner/",
+            "https://www.it-crowd.co/sistemas-de-ingenieria/"
         ],
         "pais": "Colombia",
         "instagram": null,
@@ -214,10 +259,14 @@
     },
     {
         "nombre": "Indra",
+        "secop_nombres": [
+            "INDRA COLOMBIA S.A.S."
+        ],
+        "noticias_query": "Indra Sistemas Colombia",
         "website": "https://www.indragroup.com/es/america-latina/colombia",
         "web_urls": [
-        "https://www.indragroup.com/es/tecnologia-innovacion",
-        "https://www.indragroup.com/es/impacto-sostenible/impacto-etico/alianzas"
+            "https://www.indragroup.com/es/tecnologia-innovacion",
+            "https://www.indragroup.com/es/impacto-sostenible/impacto-etico/alianzas"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/indracompany/",
@@ -230,12 +279,16 @@
     },
     {
         "nombre": "Globant",
+        "secop_nombres": [
+            "GLOBANT G&A SAS"
+        ],
+        "noticias_query": "Globant Colombia",
         "website": "https://www.globant.com/es",
         "web_urls": [
-        "https://www.globant.com/es/our-work/all-stories",
-        "https://www.globant.com/es/stay-relevant/events",
-        "https://www.globant.com/es/our-services",
-        "https://www.globant.com/es/about/partners"          
+            "https://www.globant.com/es/our-work/all-stories",
+            "https://www.globant.com/es/stay-relevant/events",
+            "https://www.globant.com/es/our-services",
+            "https://www.globant.com/es/about/partners"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/Globant",
@@ -248,11 +301,15 @@
     },
     {
         "nombre": "TIVIT",
+        "secop_nombres": [
+            "TIVIT COLOMBIA TERCERIZACION DE PROCESOS SERVICIOS Y TECNOLOGIA SAS"
+        ],
+        "noticias_query": "TIVIT Colombia tecnologia",
         "website": "https://tivit.com/es/nova-home-espanhol/",
         "web_urls": [
-        "https://tivit.com/es/soluciones-digitales/",
-        "https://latam.tivit.com/casos-de-exito",
-        "https://latam.tivit.com/partners"
+            "https://tivit.com/es/soluciones-digitales/",
+            "https://latam.tivit.com/casos-de-exito",
+            "https://latam.tivit.com/partners"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/tivit_latam/",
@@ -265,10 +322,12 @@
     },
     {
         "nombre": "Claro",
+        "secop_nombres": [],
+        "noticias_query": "Claro Colombia telecomunicaciones",
         "website": "https://www.claro.com.co/personas/",
         "web_urls": [
-        "https://www.claro.com.co/empresas/",
-        "https://www.clarocloud.com.co/"
+            "https://www.claro.com.co/empresas/",
+            "https://www.clarocloud.com.co/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/clarocolombia/",
@@ -281,10 +340,14 @@
     },
     {
         "nombre": "CETUS Technology",
+        "secop_nombres": [
+            "Cetus Technology"
+        ],
+        "noticias_query": "Cetus Technology Colombia software",
         "website": "https://cetus.com.co",
         "web_urls": [
-        "https://cetus.com.co/soluciones/",
-        "https://cetus.com.co/clientes-que-confian/"
+            "https://cetus.com.co/soluciones/",
+            "https://cetus.com.co/clientes-que-confian/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/cetustechcol",
@@ -297,9 +360,13 @@
     },
     {
         "nombre": "Comware",
+        "secop_nombres": [
+            "COMWARE"
+        ],
+        "noticias_query": "Comware Colombia tecnologia",
         "website": "https://www.comware.com.co",
         "web_urls": [
-        "https://www.comware.com.co/soluciones/"
+            "https://www.comware.com.co/soluciones/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/comwarecolombia/",
@@ -312,10 +379,12 @@
     },
     {
         "nombre": "Productive Business Solutions (PBS)",
+        "secop_nombres": [],
+        "noticias_query": "Productive Business Solutions PBS Colombia",
         "website": "https://www.pbs.group/",
         "web_urls": [
-        "https://www.pbs.group/solutions",
-        "https://www.pbs.group/about"
+            "https://www.pbs.group/solutions",
+            "https://www.pbs.group/about"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/pbsgrouplimited/",
@@ -328,11 +397,15 @@
     },
     {
         "nombre": "Iteria",
+        "secop_nombres": [
+            "ITERIA SAS"
+        ],
+        "noticias_query": "Iteria software Colombia",
         "website": "https://iteria.com.co/",
         "web_urls": [
-        "https://iteria.com.co/#Servicios",
-        "https://iteria.com.co/#Soluciones",
-        "https://iteria.com.co/#soft"
+            "https://iteria.com.co/#Servicios",
+            "https://iteria.com.co/#Soluciones",
+            "https://iteria.com.co/#soft"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/iteria_sas/",
@@ -345,11 +418,15 @@
     },
     {
         "nombre": "Entelgy",
+        "secop_nombres": [
+            "ENTELGY COLOMBIA SAS"
+        ],
+        "noticias_query": "Entelgy Colombia consultoria",
         "website": "https://entelgy.com/donde-estamos/entelgy-colombia/",
         "web_urls": [
-        "https://entelgy.com/soluciones/",
-        "https://entelgy.com/casos-de-exito/",
-        "https://entelgy.com/certificaciones/"
+            "https://entelgy.com/soluciones/",
+            "https://entelgy.com/casos-de-exito/",
+            "https://entelgy.com/certificaciones/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/entelgy_/",
@@ -362,11 +439,15 @@
     },
     {
         "nombre": "BMIND",
+        "secop_nombres": [
+            "BMIND SAS BIC"
+        ],
+        "noticias_query": "BMIND SAS Colombia datos",
         "website": "https://www.bmind.com",
         "web_urls": [
-        "https://www.bmind.com/servicios-cloud",
-        "https://www.bmind.com/industrias",
-        "https://www.bmind.com/casos-de-exito"
+            "https://www.bmind.com/servicios-cloud",
+            "https://www.bmind.com/industrias",
+            "https://www.bmind.com/casos-de-exito"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/bmind_it/",
@@ -379,6 +460,8 @@
     },
     {
         "nombre": "IZE Consultores",
+        "secop_nombres": [],
+        "noticias_query": "IZE Consultores Colombia",
         "website": "https://www.izeconsultores.com",
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/izeconsultores/",
@@ -391,10 +474,14 @@
     },
     {
         "nombre": "T&G Consulting",
+        "secop_nombres": [
+            "T&G CONSULTING SAS"
+        ],
+        "noticias_query": "T&G Consulting Colombia tecnologia",
         "website": "https://tygconsulting.com.co",
         "web_urls": [
-        "https://tygconsulting.com.co/servicios/",
-        "https://tygconsulting.com.co/nuestro-equipo/"
+            "https://tygconsulting.com.co/servicios/",
+            "https://tygconsulting.com.co/nuestro-equipo/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/tgconsultorescol/",
@@ -407,11 +494,13 @@
     },
     {
         "nombre": "Timestamp",
+        "secop_nombres": [],
+        "noticias_query": "Timestamp software Colombia",
         "website": "https://www.timestampgroup.com/es",
         "web_urls": [
-        "https://www.timestampgroup.com/es/partners",
-        "https://www.timestampgroup.com/es/acerca-de-la-timestamp",
-        "https://www.timestampgroup.com/es/casos-practicos"
+            "https://www.timestampgroup.com/es/partners",
+            "https://www.timestampgroup.com/es/acerca-de-la-timestamp",
+            "https://www.timestampgroup.com/es/casos-practicos"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/timestampcolombia/",
@@ -424,6 +513,10 @@
     },
     {
         "nombre": "Datastar",
+        "secop_nombres": [
+            "DATASTAR COLOMBIA SAS"
+        ],
+        "noticias_query": "Datastar Colombia software",
         "website": "https://www.datastar.la",
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/somosdatastar/",
@@ -436,6 +529,8 @@
     },
     {
         "nombre": "C2S Consulting",
+        "secop_nombres": [],
+        "noticias_query": "C2S Consulting Colombia tecnologia",
         "website": "https://www.c2spr.com/es/_index.html",
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/c2s.pr/",
@@ -448,11 +543,15 @@
     },
     {
         "nombre": "ITIS Support",
+        "secop_nombres": [
+            "ITIS SUPPORT"
+        ],
+        "noticias_query": "ITIS Support Colombia",
         "website": "https://itis.com.co",
         "web_urls": [
-        "https://itis.com.co/soluciones/",
-        "https://itis.com.co/blog/",
-        "https://itis.com.co/nosotros/"
+            "https://itis.com.co/soluciones/",
+            "https://itis.com.co/blog/",
+            "https://itis.com.co/nosotros/"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/itissupport/",
@@ -465,16 +564,20 @@
     },
     {
         "nombre": "SLM Sistemas",
+        "secop_nombres": [
+            "SLM SIstemas SAS"
+        ],
+        "noticias_query": "SLM Sistemas Colombia software",
         "website": "https://slm.cloud",
         "web_urls": [
-        "https://slm.cloud/inteligencia-artificial",
-        "https://slm.cloud/automatizacion",
-        "https://slm.cloud/blockchain",
-        "https://slm.cloud/analitica-de-datos",
-        "https://slm.cloud/ciberseguridad",
-        "https://slm.cloud/analitica-avanzada",
-        "https://slm.cloud/saas",
-        "https://slm.cloud/integracion"
+            "https://slm.cloud/inteligencia-artificial",
+            "https://slm.cloud/automatizacion",
+            "https://slm.cloud/blockchain",
+            "https://slm.cloud/analitica-de-datos",
+            "https://slm.cloud/ciberseguridad",
+            "https://slm.cloud/analitica-avanzada",
+            "https://slm.cloud/saas",
+            "https://slm.cloud/integracion"
         ],
         "pais": "Colombia",
         "instagram": "https://www.instagram.com/slmcloud/",
@@ -483,6 +586,44 @@
         "tiktok": null,
         "youtube_handle": "@slmcloud",
         "x": "https://x.com/slmcloud",
+        "threads": null
+    },
+    {
+        "nombre": "Global Technology Services",
+        "secop_nombres": [
+            "GLOBAL TECHNOLOGY SERVICES GTS SA"
+        ],
+        "noticias_query": "Global Technology Services GTS Colombia",
+        "website": "https://www.gtssa.co/",
+        "web_urls": [
+            "https://www.gtssa.co/#soluciones"
+        ],
+        "pais": "Colombia",
+        "instagram": null,
+        "facebook": "https://www.facebook.com/gtssa.co/?locale=es_LA",
+        "linkedin": "https://co.linkedin.com/company/global-technology-services-gts-s-a-",
+        "tiktok": null,
+        "youtube_handle": "null",
+        "x": "null",
+        "threads": null
+    },
+    {
+        "nombre": "Grow Data",
+        "secop_nombres": [
+            "GROW DATA S.A.S."
+        ],
+        "noticias_query": "Grow Data Colombia tecnologia",
+        "website": "https://growdata.com.co/",
+        "web_urls": [
+            null
+        ],
+        "pais": "Colombia",
+        "instagram": null,
+        "facebook": "https://www.facebook.com/growdatasas",
+        "linkedin": "https://www.linkedin.com/company/growdata",
+        "tiktok": null,
+        "youtube_handle": "null",
+        "x": "null",
         "threads": null
     }
 ]

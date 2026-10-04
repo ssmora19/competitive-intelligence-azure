@@ -307,12 +307,7 @@ def ingest_noticias_proveedores() -> list[dict]:
 
 
 def ingest_rss_proveedores() -> dict:
-    """
-    QUÉ HACE:  lee los RSS de fabricantes (grupo 'fabricantes' del news_client:
-               Oracle DB, Snowflake engineering, Red Hat blog).
-    PARA QUÉ:  KIN 2 — novedades técnicas de producto vía feed.
-    Frecuencia: mensual.
-    """
+    """QUÉ HACE: lee los RSS de fabricantes (Oracle DB, Snowflake, Red Hat). PARA QUÉ: KIN 2 — novedades técnicas de producto."""
     items_raw = news.get_feeds_by_group("fabricantes", limite=20)
     return _ingestar(
         fuente     = "rss_proveedores",
@@ -321,6 +316,16 @@ def ingest_rss_proveedores() -> dict:
         source_url = "rss_fabricantes_tak",
     )
 
+
+def ingest_rss_ecosistema() -> dict:
+    """QUÉ HACE: lee RSS del ecosistema TI empresarial colombiano (Impacto TIC, El Tiempo). PARA QUÉ: noticias frescas del sector para el bloque ecosistema."""
+    items_raw = news.get_feeds_by_group("ecosistema", limite=15)
+    return _ingestar(
+        fuente     = "rss_ecosistema",
+        empresa    = "ecosistema_colombia",
+        items_raw  = items_raw,
+        source_url = "rss_ecosistema_colombia",
+    )
 
 def ingest_startups_tech_colombia() -> dict:
     """
@@ -417,8 +422,8 @@ FUENTES = {
     "licenciamiento":               ingest_licenciamiento,
     "noticias_proveedores":         ingest_noticias_proveedores,
     "rss_proveedores":              ingest_rss_proveedores,
+    "rss_ecosistema":               ingest_rss_ecosistema,
     "startups_tech_colombia":       ingest_startups_tech_colombia,
-    # opcionales (solo HTTP)
     "marketplaces_tech":            ingest_marketplaces_tech,
     "redes_sociales_proveedores":   ingest_redes_sociales_proveedores,
 }
@@ -428,6 +433,7 @@ FUENTES_TIMER = [
     "licenciamiento",
     "noticias_proveedores",
     "rss_proveedores",
+    "rss_ecosistema",
     "startups_tech_colombia",
 ]
 

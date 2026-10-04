@@ -1,0 +1,551 @@
+[
+  {
+    "entidad": "DIAN",
+    "nombre_secop": "U.A.E. DIRECCION DE IMPUESTOS Y ADUANAS NACIONALES",
+    "noticias_query": "DIAN Colombia impuestos tecnologia",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Gobernacion de Antioquia",
+    "nombre_secop": "DEPARTAMENTO DE ANTIOQUIA",
+    "noticias_query": "Gobernacion de Antioquia contratacion",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio de Justicia y del Derecho",
+    "nombre_secop": "MINISTERIO DE JUSTICIA Y DEL DERECHO",
+    "noticias_query": "Ministerio de Justicia Colombia tecnologia",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ejercito Nacional",
+    "nombre_secop": "EJERCITO NACIONAL",
+    "noticias_query": "Ejercito Nacional Colombia contratacion tecnologia",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Servicio Geologico Colombiano",
+    "nombre_secop": "SERVICIO GEOLOGICO COLOMBIANO",
+    "noticias_query": "Servicio Geologico Colombiano",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Junta Central de Contadores",
+    "nombre_secop": "UNIDAD ADMINISTRATIVA ESPECIAL JUNTA CENTRAL DE CONTADORES",
+    "noticias_query": "Junta Central de Contadores Colombia",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "EPS Famisanar",
+    "nombre_secop": null,
+    "noticias_query": "Famisanar EPS Colombia",
+    "competidor": "IT CROWD",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "DITRA - Direccion de Transito y Transporte Policia Nacional",
+    "nombre_secop": "POLICIA NACIONAL",
+    "noticias_query": "Direccion Transito Transporte Policia Nacional Colombia",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "ANSPE",
+    "nombre_secop": "AGENCIA NACIONAL PARA LA SUPERACION DE LA POBREZA EXTREMA",
+    "noticias_query": "ANSPE Colombia prosperidad social",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "IDIPRON",
+    "nombre_secop": "INSTITUTO DISTRITAL PARA LA PROTECCION DE LA NINEZ Y LA JUVENTUD",
+    "noticias_query": "IDIPRON Bogota",
+    "competidor": "IT CROWD",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "SENA",
+    "nombre_secop": "SERVICIO NACIONAL DE APRENDIZAJE",
+    "noticias_query": "SENA Colombia tecnologia contratacion",
+    "competidor": "Comware",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "La Previsora S.A.",
+    "nombre_secop": "LA PREVISORA S.A. COMPANIA DE SEGUROS",
+    "noticias_query": "La Previsora Seguros Colombia",
+    "competidor": "Comware",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Superintendencia Financiera de Colombia",
+    "nombre_secop": "SUPERINTENDENCIA FINANCIERA DE COLOMBIA",
+    "noticias_query": "Superintendencia Financiera Colombia",
+    "competidor": "Comware",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Colombia Compra Eficiente",
+    "nombre_secop": "AGENCIA NACIONAL DE CONTRATACION PUBLICA - COLOMBIA COMPRA EFICIENTE",
+    "noticias_query": "Colombia Compra Eficiente",
+    "competidor": "Comware",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Grupo Bancolombia",
+    "nombre_secop": null,
+    "noticias_query": "Grupo Bancolombia tecnologia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Davivienda",
+    "nombre_secop": null,
+    "noticias_query": "Davivienda Colombia tecnologia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Grupo Exito",
+    "nombre_secop": null,
+    "noticias_query": "Grupo Exito Colombia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Sura",
+    "nombre_secop": null,
+    "noticias_query": "Grupo Sura Colombia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "PepsiCo Colombia",
+    "nombre_secop": null,
+    "noticias_query": "PepsiCo Colombia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Nestle de Colombia",
+    "nombre_secop": null,
+    "noticias_query": "Nestle Colombia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Tecnoquimicas",
+    "nombre_secop": null,
+    "noticias_query": "Tecnoquimicas Colombia",
+    "competidor": "SETI",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "IDEMIA",
+    "nombre_secop": null,
+    "noticias_query": "IDEMIA identidad biometria",
+    "competidor": "Iteria",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Yupi",
+    "nombre_secop": null,
+    "noticias_query": "Yupi Colombia snacks",
+    "competidor": "Iteria",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Telefonica Movistar",
+    "nombre_secop": null,
+    "noticias_query": "Telefonica Movistar Colombia",
+    "competidor": "Iteria",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Banco Santander",
+    "nombre_secop": null,
+    "noticias_query": "Banco Santander Espana tecnologia",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "CaixaBank",
+    "nombre_secop": null,
+    "noticias_query": "CaixaBank Espana tecnologia",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Mapfre",
+    "nombre_secop": null,
+    "noticias_query": "Mapfre seguros Espana",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Mutua Madrilena",
+    "nombre_secop": null,
+    "noticias_query": "Mutua Madrilena Espana",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "El Corte Ingles",
+    "nombre_secop": null,
+    "noticias_query": "El Corte Ingles Espana",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Toyota",
+    "nombre_secop": null,
+    "noticias_query": "Toyota Espana",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "LaLiga",
+    "nombre_secop": null,
+    "noticias_query": "LaLiga tecnologia",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Endesa",
+    "nombre_secop": null,
+    "noticias_query": "Endesa Espana energia",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Mediaset Espana",
+    "nombre_secop": null,
+    "noticias_query": "Mediaset Espana",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Unidad Editorial",
+    "nombre_secop": null,
+    "noticias_query": "Unidad Editorial Espana",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Lowi",
+    "nombre_secop": null,
+    "noticias_query": "Lowi Espana telefonia",
+    "competidor": "BMIND",
+    "tipo": "privada_extranjera",
+    "activo": false,
+    "web_urls": []
+  },
+  {
+    "entidad": "Cancillería de Colombia",
+    "nombre_secop": "MINISTERIO DE RELACIONES EXTERIORES",
+    "noticias_query": "Cancilleria Colombia Relaciones Exteriores",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Comisión Nacional del Servicio Civil",
+    "nombre_secop": "COMISION NACIONAL DEL SERVICIO CIVIL",
+    "noticias_query": "Comision Nacional del Servicio Civil Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "CREMIL",
+    "nombre_secop": "CAJA DE RETIRO DE LAS FUERZAS MILITARES",
+    "noticias_query": "CREMIL Caja Retiro Fuerzas Militares Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "ETB",
+    "nombre_secop": "ETB",
+    "noticias_query": "ETB Colombia telecomunicaciones",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "ICBF",
+    "nombre_secop": "Instituto Colombiano de Bienestar Familiar",
+    "noticias_query": "ICBF Instituto Colombiano Bienestar Familiar",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Fuerza Aérea Colombiana",
+    "nombre_secop": "FUERZA AÉREA COLOMBIANA",
+    "noticias_query": "Fuerza Aerea Colombiana",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio de Transporte",
+    "nombre_secop": "MINISTERIO DE TRANSPORTE",
+    "noticias_query": "Ministerio de Transporte Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio de Defensa Nacional",
+    "nombre_secop": "MINISTERIO DE DEFENSA NACIONAL",
+    "noticias_query": "Ministerio de Defensa Nacional Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Los Cobos Medical Center",
+    "nombre_secop": "LOSCOBOS MEDICAL CENTER SAS",
+    "noticias_query": "Los Cobos Medical Center Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Politécnico Grancolombiano",
+    "nombre_secop": "POLITÉCNICO GRANCOLOMBIANO",
+    "noticias_query": "Politecnico Grancolombiano Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Transmilenio",
+    "nombre_secop": "TRANSMILENIO S.A.",
+    "noticias_query": "Transmilenio Bogota Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio de Hacienda y Crédito Público",
+    "nombre_secop": "MINISTERIO DE HACIENDA Y CREDITO PUBLICO",
+    "noticias_query": "Ministerio de Hacienda Credito Publico Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio de las Culturas, las Artes y los Saberes",
+    "nombre_secop": "Ministerio de las Culturas, las Artes y los Saberes",
+    "noticias_query": "Ministerio de las Culturas Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "RCN Televisión",
+    "nombre_secop": "RCNTelevision S.A.",
+    "noticias_query": "RCN Television Colombia",
+    "competidor": "Global Technology Services",
+    "tipo": "privada",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Agencia Nacional de Tierras",
+    "nombre_secop": "AGENCIA NACIONAL DE TIERRAS",
+    "noticias_query": "Agencia Nacional de Tierras Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Consejo Nacional Electoral",
+    "nombre_secop": "CONSEJO NACIONAL ELECTORAL",
+    "noticias_query": "Consejo Nacional Electoral Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Defensoría del Pueblo",
+    "nombre_secop": "DEFENSORÍA DEL PUEBLO",
+    "noticias_query": "Defensoria del Pueblo Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Departamento Nacional de Planeación",
+    "nombre_secop": "DEPARTAMENTO NACIONAL DE PLANEACIÓN",
+    "noticias_query": "Departamento Nacional de Planeacion DNP Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Fondo Nacional del Ahorro",
+    "nombre_secop": "FONDO NACIONAL DEL AHORRO S.A.",
+    "noticias_query": "Fondo Nacional del Ahorro Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "FOGACOOP",
+    "nombre_secop": "FONDO DE GARANTÍAS DE ENTIDADES COOPERATIVAS - FOGACOOP",
+    "noticias_query": "Fogacoop Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "ICETEX",
+    "nombre_secop": "ICETEX",
+    "noticias_query": "ICETEX Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "INFOTIC",
+    "nombre_secop": "INFOTIC S.A",
+    "noticias_query": "Infotic Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Procuraduría General de la Nación",
+    "nombre_secop": "PROCURADURIA GENERAL DE LA NACION",
+    "noticias_query": "Procuraduria General de la Nacion Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Registraduría Nacional del Estado Civil",
+    "nombre_secop": "REGISTRADURIA NACIONAL DEL ESTADO CIVIL",
+    "noticias_query": "Registraduria Nacional Estado Civil Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio TIC",
+    "nombre_secop": "MINISTERIO DE TECNOLOGÍAS DE LA INFORMACIÓN Y LAS COMUNICACIONES DE COLOMBIA.",
+    "noticias_query": "Ministerio TIC Colombia tecnologia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  },
+  {
+    "entidad": "Ministerio de Ciencias",
+    "nombre_secop": "MINCIENCIAS",
+    "noticias_query": "Minciencias Colombia",
+    "competidor": "Grow Data",
+    "tipo": "publica",
+    "activo": true,
+    "web_urls": []
+  }
+]

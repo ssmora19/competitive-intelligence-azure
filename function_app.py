@@ -5,7 +5,7 @@ Punto de entrada principal de Azure Functions.
 
 Cada dominio (competidores, clientes, mercado, ...) define sus triggers sobre
 un Blueprint (app = func.Blueprint()). Aquí se crea la ÚNICA FunctionApp real y
-se registran los 7 blueprints con register_functions().
+se registran los 8 dominios de Bronze, Silver y el orquestador del pipeline.
 """
 
 import logging
@@ -47,6 +47,11 @@ from ingestion_proveedores.function_proveedores   import app as bp_proveedores  
 from ingestion_capacidades.function_capacidades   import app as bp_capacidades    # noqa: E402
 from ingestion_tendencias.function_tendencias     import app as bp_tendencias     # noqa: E402
 from ingestion_regulatorio.function_regulatorio   import app as bp_regulatorio    # noqa: E402
+from ingestion_clientes_competencia.function_clientes_competencia import app as bp_clientes_competencia
+from ingestion_silver.function_silver import bp as bp_silver
+app.register_blueprint(bp_silver)
+from orquestacion.function_orquestacion import bp as bp_orquestador  # noqa: E402
+app.register_blueprint(bp_orquestador)
 
 # ── Registrar los 7 dominios en la aplicación ────────────────
 app.register_functions(bp_competidores)
@@ -56,3 +61,4 @@ app.register_functions(bp_proveedores)
 app.register_functions(bp_capacidades)
 app.register_functions(bp_tendencias)
 app.register_functions(bp_regulatorio)
+app.register_functions(bp_clientes_competencia)

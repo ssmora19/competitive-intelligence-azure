@@ -1,0 +1,46 @@
+{
+    "_como_usar": "Este archivo le dice al orquestador qué ejecutar. Casi nunca lo tocas: tal como está corre los 8 dominios, gratis. Para cambiarlo, mejor abre GUIA_parametros_monitoreo.md y copia el bloque completo del caso que quieras. Los campos que empiezan con '_' son notas y el programa los ignora.",
+    "bronze": {
+        "_ejemplo_incluir_apify": "false = solo fuentes gratis (lo normal). true = agrega redes sociales/LinkedIn, que GASTAN crédito de Apify.",
+        "_ejemplo_solo_contenedor": "null = corre los 8 dominios. O un nombre entre comillas para uno solo, p.ej.: \"competidores\"",
+        "incluir_apify": false,
+        "incluir_opcional": false,
+        "solo_contenedor": null
+    },
+    "silver": {
+        "_ejemplo_contenedores": "La lista de contenedores Bronze que procesa Silver. Verifica una vez que estos nombres sean los tuyos reales (az storage container list).",
+        "_ejemplo_solo_relevantes": "false = escribe todo (lo normal). true = solo lo que pasa el umbral de relevancia.",
+        "contenedores": [
+            "bronze-competidores",
+            "bronze-clientes",
+            "bronze-clientes-competencia",
+            "bronze-mercado",
+            "bronze-proveedores",
+            "bronze-regulatorio",
+            "bronze-tendencias",
+            "bronze-capacidades"
+        ],
+        "tam_tanda": 50,
+        "solo_relevantes": false,
+        "pasos_post": [
+            {
+                "_ejemplo": "Clasificador de eventos (Groq). Ya está listo, no lo toques. Es reanudable: en el demo salta lo ya clasificado.",
+                "nombre": "Clasificación de eventos (Groq)",
+                "script": "clasificar_eventos.py",
+                "cwd": "ingestion_silver/clasificacion_eventos",
+                "args": [
+                    "--todos"
+                ]
+            }
+        ]
+    },
+    "gold": [
+        {
+            "_ejemplo": "Cálculo final. Ya está listo, no lo toques.",
+            "nombre": "Cálculo Gold (indicadores + veredictos)",
+            "script": "calcular_gold.py",
+            "cwd": "gold",
+            "args": []
+        }
+    ]
+}

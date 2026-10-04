@@ -1,8 +1,56 @@
+# ── Entorno local y control de versiones ──
 .git*
 .vscode
+.venv
+__pycache__
 __azurite_db*__.json
 __blobstorage__
 __queuestorage__
 local.settings.json
 test
-.venv
+
+# ── Datos de trabajo y evidencias de validación (se quedan en GitHub) ──
+*.csv
+*.xlsx
+*.ps1
+*.md
+*.docx
+*.pbix
+*.pbit
+
+# ── Scripts de validación, diagnóstico, pruebas y limpieza ──
+test_*
+ver_*
+verificar_*
+diagnostico_*
+probar_*
+borrar_*
+limpiar_*
+resetear_*
+validar_*
+experimento_*
+buscar*
+medir_relevancia.py
+muestrear_para_etiquetar.py
+armar_hoja_etiquetado.py
+recalcular_relevancia.py
+listar_terminos_noticias.py
+revisar_montos.py
+
+# ── Gold que no usa el tablero ──
+resumir_veredictos.py
+resumen_ejecutivo.py
+
+# ── Orquestación local (se reemplaza por el orquestador en Azure) ──
+orquestador.py
+ejecutar_todo.py
+parametros_monitoreo.json
+
+# ── Inspección y validación interna ──
+gold/inspeccionar_*
+ingestion_silver/clasificacion_eventos/preparar_muestra.py
+ingestion_silver/clasificacion_eventos/prueba_*
+ingestion_silver/clasificacion_eventos/validacion.py
+
+# ── Sin uso ──
+shared/brightdata_client.pyrespaldo_*

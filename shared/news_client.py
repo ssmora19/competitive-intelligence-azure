@@ -13,8 +13,8 @@ Fuentes configuradas:
   - Oracle Blog (novedades Oracle)
   - Snowflake Blog (novedades Snowflake)
   - Red Hat Blog (novedades Red Hat)
-  - Platzi Blog (tech Colombia/Latam)
-  - MinTIC noticias (tech Colombia)
+  - Enter.co / ITNow (tech Colombia/Latam)
+  - Impacto TIC / El Tiempo (ecosistema TI empresarial Colombia)  [NUEVO]
 
 NUEVO — buscar_noticias_empresa():
   Google News RSS por nombre de entidad (Camino A). Reemplaza el scraping
@@ -48,6 +48,12 @@ RSS_FEEDS = {
     # Tech Colombia/Latam
     "enter_co":        "https://www.enter.co/feed/",
     "itnow_latam":     "https://itnow.com.co/feed/",
+
+    # Ecosistema TI empresarial Colombia (NUEVO) — noticias frescas del sector
+    "impacto_tic":         "https://impactotic.co/feed/",
+    "eltiempo_empresas":   "https://www.eltiempo.com/rss/economia_empresas.xml",
+    "eltiempo_tecnologia": "https://www.eltiempo.com/rss/tecnosfera_novedades-tecnologia.xml",
+    "eltiempo_sectores":   "https://www.eltiempo.com/rss/economia_sectores.xml",
 }
 
 DEFAULT_THROTTLE = 1
@@ -144,12 +150,15 @@ class NewsClient:
     ) -> list[dict]:
         """
         Lee feeds de un grupo específico.
-        grupos: 'fabricantes' | 'tech_general' | 'colombia'
+        grupos: 'fabricantes' | 'tech_general' | 'colombia' | 'ecosistema'
         """
         grupos = {
             "fabricantes":   ["oracle_blog", "snowflake_blog", "redhat_blog"],
             "tech_general":  ["techcrunch", "infoq", "thenewstack"],
             "colombia":      ["enter_co", "itnow_latam"],
+            # NUEVO — ecosistema TI empresarial colombiano (noticias frescas)
+            "ecosistema":    ["impacto_tic", "eltiempo_empresas",
+                              "eltiempo_tecnologia", "eltiempo_sectores"],
         }
 
         fuentes = grupos.get(grupo, [])
@@ -174,15 +183,6 @@ class NewsClient:
         QUÉ HACE:
           Arma el feed RSS de búsqueda de Google News para nombre_empresa,
           filtrado por región (Colombia) e idioma, y lo lee con get_feed.
-
-        PARA QUÉ SIRVE:
-          Traer noticias de TERCEROS sobre un competidor o cliente SIN
-          scrapear su web (evita los 404 de rutas adivinadas). Gratis.
-          Reutiliza get_feed, que ya sabe leer y limpiar RSS.
-
-        Ejemplo:
-          buscar_noticias_empresa("Ecopetrol") ->
-          https://news.google.com/rss/search?q=Ecopetrol&hl=es-419&gl=CO&ceid=CO:es
         """
         if not nombre_empresa or not nombre_empresa.strip():
             return []
@@ -195,7 +195,6 @@ class NewsClient:
         )
 
         items = self.get_feed(url, limite=limite)
-        # Reetiquetar la trazabilidad: por qué entidad se buscó
         for it in items:
             it["_fuente_rss"]      = f"google_news:{nombre_empresa}"
             it["_entidad_buscada"] = nombre_empresa
