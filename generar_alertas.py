@@ -42,12 +42,13 @@ def _rk(tipo, clave):
 
 
 def _dias_desde(fecha_str, futuro=False):
-    """Días entre hoy y la fecha. futuro=True cuenta hacia adelante (para cierres)."""
+    """Días entre HOY (fecha de Colombia) y la fecha dada, contados por fecha y no
+    por horas: una licitación que cierra mañana da 1 a cualquier hora del día.
+    futuro=True cuenta hacia adelante (cierres); False cuenta hacia atrás (antigüedad)."""
     try:
-        f = datetime.fromisoformat(str(fecha_str).replace("Z","+00:00")[:19])
-        if f.tzinfo is None: f = f.replace(tzinfo=timezone.utc)
-        d = (f - datetime.now(timezone.utc)).days if futuro else (datetime.now(timezone.utc) - f).days
-        return d
+        f = datetime.fromisoformat(str(fecha_str)[:10]).date()
+        hoy = (datetime.now(timezone.utc) - timedelta(hours=5)).date()   # Colombia, UTC-5
+        return (f - hoy).days if futuro else (hoy - f).days
     except Exception:
         return None
 
@@ -73,6 +74,7 @@ def alertas_competencia(tsc):
             "monto": valor,
             "categoria": e.get("categoria",""),
             "por_que": "Un competidor gan\u00f3 negocio en un servicio que TAK ofrece.",
+            "url": e.get("url", "") or "",
             "clave": e.get("id_secop","") or e.get("RowKey",""),
         })
     alertas.sort(key=lambda x: x["fecha"], reverse=True)
@@ -136,7 +138,7 @@ def alertas_vencimientos(tsc):
     y TAK puede acercarse ANTES de que salga la licitación.
     """
     t = tsc.get_table_client("goldContratos")
-    hoy = datetime.now(timezone.utc).date()
+    hoy = (datetime.now(timezone.utc) - timedelta(hours=5)).date()   # fecha de Colombia
     alertas = []
     for e in t.list_entities():
         if e.get("es_tak") == "S\u00ed":
@@ -171,6 +173,7 @@ def alertas_vencimientos(tsc):
             "categoria": f"Hoy con {e.get('competidor', '?')}",
             "dias": dias,
             "por_que": " \u00b7 ".join(marcas),
+            "url": e.get("url", "") or "",
             "clave": e.get("id_secop", "") or e.get("RowKey", ""),
             "_renovable": renovable,
         })
@@ -202,10 +205,11 @@ def alertas_licitaciones(tsc):
             "categoria": e.get("categoria",""),
             "dias": dias,
             "por_que": _relacion(e.get("entidad", "")),   # Cliente tuyo / Cliente de X / Mercado
+            "url": e.get("url", "") or "",                 # enlace al proceso en SECOP
             "clave": e.get("RowKey",""),
         })
     alertas.sort(key=lambda x: x.get("dias", 999))
-    return alertas[:10]
+    return alertas          # TODAS las licitaciones vigentes de TI, de la que cierra antes a la última
 
 
 def alertas_regulatorio(bs):
@@ -251,6 +255,7 @@ def alertas_regulatorio(bs):
             "monto": 0,
             "categoria": "Regulatorio",
             "por_que": "Nuevas obligaciones pueden generar demanda de servicios TI.",
+            "url": d.get("url", "") or "",
             "clave": d.get("id","") or titulo[:40],
         })
     alertas.sort(key=lambda x: x["fecha"], reverse=True)
@@ -347,6 +352,7 @@ def main():
             "dias": a.get("dias", -1),
             "categoria": a.get("categoria",""),
             "por_que": a["por_que"],
+            "url": a.get("url", "") or "",
         })
 
     print(f"\n  TOTAL alertas: {len(filas)}")

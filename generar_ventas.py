@@ -128,9 +128,21 @@ def _cargar_silver():
                 fecha = str(d.get("fecha_evento_utc") or "")[:10]
                 # excluir noticias que NO son de negocio/TI (tragedias, política, etc.)
                 if tit and not _es_ruido_noticia(tit):
-                    _cache_not.setdefault(ent, []).append({"titulo": tit, "fecha": fecha})
+                    _cache_not.setdefault(ent, []).append({"titulo": tit, "fecha": fecha,
+                                                           "url": d.get("url", "") or ""})
             elif fuente in FUENTES_SECOP:
-                _cache_secop[ent] = _cache_secop.get(ent, 0) + 1
+                # Se guarda QUÉ contrata (objeto, valor, fecha), no solo cuántos procesos tiene,
+                # para que la IA pueda fundamentar el servicio en lo que la entidad compra.
+                bloque = d.get("bloque") or {}
+                objeto = (bloque.get("objeto") or d.get("titulo") or "").strip()
+                _cache_secop.setdefault(ent, []).append({
+                    "titulo": objeto,
+                    # solo la fecha de PUBLICACIÓN de un proceso es fecha de señal; la de un
+                    # contrato es su fecha de fin, así que no se usa como fecha de la señal
+                    "fecha": str(bloque.get("fecha_publicacion") or "")[:10],
+                    "url": d.get("url", "") or "",
+                    "valor": bloque.get("valor") or 0,
+                })
 
 
 def _noticias_de(nombre):
@@ -148,14 +160,16 @@ def _noticias_de(nombre):
     return []
 
 
-def _secop_de(nombre):
+def _secop_items_de(nombre):
+    """Procesos/contratos SECOP de la entidad (con objeto), los más recientes primero."""
     _cargar_silver()
     obj = _norm(nombre)
-    total = 0
-    for ent, n in _cache_secop.items():
+    items = []
+    for ent, lst in _cache_secop.items():
         if obj and (obj in ent or ent in obj):
-            total += n
-    return total
+            items.extend(x for x in lst if x.get("titulo"))
+    items.sort(key=lambda x: (x.get("fecha") or "", x.get("valor") or 0), reverse=True)
+    return items
 
 
 def _competidor_de(nombre_completo):
@@ -164,16 +178,23 @@ def _competidor_de(nombre_completo):
 
 
 SYSTEM = (
-    "Eres asesor comercial de TAK, empresa de TI colombiana. Portafolio: nube, "
-    "inteligencia artificial, machine learning, ciberseguridad, bases de datos Oracle, "
-    "business intelligence, infraestructura y blockchain. Para el prospecto que te doy, "
-    "responde SOLO un JSON válido con TRES campos separados: "
-    '{"servicio":"<servicio del portafolio que mejor encaje>",'
+    "Eres asesor comercial de TAK, empresa de TI colombiana. Su portafolio OFICIAL es: "
+    "Inteligencia Artificial, Machine Learning, Ciberseguridad, Bases de datos (fuerte en Oracle), "
+    "Business Intelligence, Infraestructura, Virtualización y sistemas operativos, Capa media "
+    "(servidores de aplicaciones), Desarrollo de aplicaciones, Licencias, Hardware, Blockchain "
+    "y Servicios en la nube (vía AWS y Microsoft). Para el prospecto que te doy, responde SOLO un "
+    "JSON válido con estos campos: "
+    '{"servicio":"<UNO del portafolio oficial, o Por identificar>",'
     '"nivel":"<Alto o Medio>",'
     '"senal":"<el HECHO real detectado del prospecto, máx 14 palabras, sin recomendar nada, '
     'solo qué está pasando. Ej: Ampliaron su red de infraestructura>",'
     '"recomendacion":"<la ACCIÓN que TAK debe tomar, máx 16 palabras, qué ofrecer y por qué. '
-    'Ej: Ofrécele nube escalable para soportar ese crecimiento>"}. '
+    'Ej: Ofrécele nube escalable para soportar ese crecimiento>",'
+    '"por_que":"<máx 25 palabras: qué dice EXACTAMENTE la evidencia que justifica ese servicio. '
+    'Ej: Tiene un contrato SECOP de soporte a bases de datos Oracle; eso es Bases de datos. '
+    'No menciones números de evidencia: describe el hecho>",'
+    '"evidencia":<el NÚMERO de la evidencia (noticia o SECOP) en la que te basas, '
+    'o 0 si no hay ninguna>}. '
     "La SEÑAL sale de la noticia más relevante que te doy (el hecho puro). Si no hay noticia "
     "pero es muy activo en contratación pública (SECOP), la señal es eso (ej: Muy activo en "
     "licitaciones públicas). La RECOMENDACIÓN conecta ese hecho con un servicio de TAK. "
@@ -182,29 +203,40 @@ SYSTEM = (
     "o deportes), NO fuerces una recomendación de TI rebuscada. En ese caso pon en senal una "
     "descripción NEUTRA de la entidad y una recomendación general de acercamiento comercial, "
     "sin inventar conexiones forzadas con ciberseguridad o nube. "
-    "REGLA CLAVE: solo recomienda un servicio ESPECÍFICO (nube, ciberseguridad, etc.) cuando "
-    "haya una señal clara en la noticia que lo justifique. Si solo sabes que la entidad es "
-    "activa en SECOP pero no QUÉ necesita, la recomendación debe ser investigar/explorar sus "
-    "licitaciones, NO ofrecer un servicio que no sabes si necesita. Nunca inventes la necesidad."
+    "REGLA CLAVE: solo pon un servicio ESPECÍFICO cuando la evidencia lo justifique de forma "
+    "explícita, y explica esa justificación en por_que. Si no hay evidencia clara de QUÉ "
+    "necesita, el servicio es 'Por identificar' y en por_que dilo con honestidad (ej: La noticia "
+    "no indica una necesidad tecnológica concreta). Nunca inventes la necesidad."
 )
 
 
-def _prompt(nombre, tipo, score, noticias, n_secop):
+def _evidencias(noticias, secop):
+    """Lista única y numerada de evidencias: hasta 4 noticias y hasta 4 objetos de SECOP."""
+    ev = [dict(n, origen="noticia") for n in noticias[:4]]
+    ev += [dict(x, origen="secop") for x in secop[:4]]
+    return ev
+
+
+def _prompt(nombre, tipo, score, evidencias, n_secop):
     tipoTxt = "cliente propio interesado" if tipo == "lead_score" else "cliente de la competencia capturable"
-    if noticias:
-        contexto = "Noticias recientes:\n" + "\n".join(f"  - {t['titulo']}" for t in noticias)
-    elif n_secop > 0:
-        contexto = (f"Sin noticias recientes, pero es MUY ACTIVO en contratación pública: "
-                    f"{n_secop} procesos/contratos en SECOP. OJO: no sabemos QUÉ tecnología "
-                    f"necesita (no hay noticia que lo indique), solo que contrata mucho. Por eso "
-                    f"la recomendación NO debe inventar un servicio específico; debe sugerir "
-                    f"INVESTIGAR sus licitaciones para detectar qué compra. El servicio ponlo como "
-                    f"'Por identificar'.")
+    if evidencias:
+        lineas = []
+        for i, e in enumerate(evidencias, 1):
+            if e["origen"] == "noticia":
+                lineas.append(f"  {i}. [Noticia, {e.get('fecha') or 'sin fecha'}] {e['titulo']}")
+            else:
+                valor = f", ${float(e.get('valor') or 0):,.0f}" if e.get("valor") else ""
+                lineas.append(f"  {i}. [SECOP, lo que contrata{valor}] {e['titulo'][:200]}")
+        contexto = (f"Evidencias numeradas ({n_secop} procesos/contratos SECOP en total):\n"
+                    + "\n".join(lineas) +
+                    "\nLas de SECOP dicen QUÉ compra la entidad: úsalas para fundamentar el servicio "
+                    "si se relacionan con el portafolio de TAK. Si lo que compra no es de TI "
+                    "(obras, alimentos, aseo, etc.), no fuerces un servicio: pon 'Por identificar'.")
     else:
         contexto = "Sin noticias ni actividad SECOP relevante."
     return (
         f"Prospecto: {nombre}\nTipo: {tipoTxt}\nPrioridad (0-1): {score}\n{contexto}\n\n"
-        f"Genera el JSON con servicio, nivel, senal y recomendacion."
+        f"Genera el JSON con servicio, nivel, senal, recomendacion, por_que y evidencia."
     )
 
 
@@ -236,6 +268,16 @@ SERVICIOS_CANONICOS = {
     "desarrollo de software": "Desarrollo de software",
     "por identificar": "Por identificar",
 }
+
+
+# Texto que marca a un prospecto sin análisis de IA (no se muestra como alerta).
+TEXTO_PENDIENTE = "Pendiente de análisis (se completa en la próxima corrida)."
+
+
+def _es_relleno(senal: str) -> bool:
+    """QUÉ HACE: detecta señales que no son un análisis real (relleno viejo o pendiente)."""
+    n = _norm(senal)
+    return ("prospecto con actividad relevante" in n) or ("pendiente de analisis" in n)
 
 
 def _normalizar_servicio(serv: str) -> str:
@@ -277,6 +319,20 @@ def main():
         prospectos.append(e)
 
     print(f"Prospectos de venta: {len(prospectos)}  (excluidos {excluidos} competidores)")
+
+    # Análisis de la corrida anterior, por prospecto. Si Groq falla con un prospecto
+    # (p. ej. límite diario, error 429), se CONSERVA su análisis anterior en vez de
+    # escribir un texto de relleno que no le dice nada al usuario.
+    previos = {}
+    evid_prev = None
+    try:
+        for p in tsc.get_table_client(TABLA_VENTAS).list_entities():
+            senal_p = str(p.get("senal", "") or "")
+            if senal_p and not _es_relleno(senal_p):
+                previos[_norm(p.get("prospecto", ""))] = p
+    except Exception:
+        pass
+    conservados = pendientes = 0
     filas = []
     hechos = 0
     for e in prospectos:
@@ -291,7 +347,9 @@ def main():
         nombre_limpio = re.sub(r"\s*\(cliente de.*?\)", "", nombre, flags=re.IGNORECASE).strip()
         competidor = _competidor_de(nombre)
         noticias = _noticias_de(nombre_limpio)
-        n_secop = _secop_de(nombre_limpio)
+        secop_items = _secop_items_de(nombre_limpio)
+        n_secop = len(secop_items)
+        evidencias = _evidencias(noticias, secop_items)
         origen = "noticia" if noticias else ("secop" if n_secop > 0 else "general")
         # NOVEDAD: fecha de la señal = fecha de la noticia más reciente
         fecha_senal = noticias[0].get("fecha", "") if noticias else ""
@@ -299,14 +357,50 @@ def main():
             resp = cliente.chat.completions.create(
                 model=MODELO_GROQ,
                 messages=[{"role": "system", "content": SYSTEM},
-                          {"role": "user", "content": _prompt(nombre_limpio, tipo, f"{score:.2f}", noticias, n_secop)}],
-                temperature=0.5, max_tokens=120,
+                          {"role": "user", "content": _prompt(nombre_limpio, tipo, f"{score:.2f}", evidencias, n_secop)}],
+                temperature=0.5, max_tokens=220,
             )
             txt = resp.choices[0].message.content.strip().replace("```json", "").replace("```", "").strip()
             data = json.loads(txt)
         except Exception as ex:
             print(f"  ERROR {nombre_limpio}: {ex}")
-            data = {"servicio": "Infraestructura TI", "nivel": "Medio", "senal": "Prospecto con actividad relevante.", "recomendacion": "Contactar para explorar necesidades."}
+            previo = previos.get(_norm(nombre_limpio))
+            if previo:
+                # Se conserva el análisis real de la corrida anterior (con su fecha).
+                data = {"servicio": previo.get("servicio", ""), "nivel": previo.get("nivel_encaje", "Medio"),
+                        "senal": previo.get("senal", ""), "recomendacion": previo.get("recomendacion", ""),
+                        "por_que": previo.get("por_que", "")}
+                evid_prev = {"titulo": previo.get("evidencia", ""), "fecha": previo.get("evidencia_fecha", ""),
+                             "url": previo.get("evidencia_url", "")}
+                fecha_senal = str(previo.get("fecha_senal", "") or "")
+                conservados += 1
+                print("     -> se conserva su análisis anterior")
+            else:
+                # Prospecto nuevo sin análisis previo: queda marcado como pendiente
+                # (no aparece en el Centro de Alertas hasta que tenga análisis real).
+                data = {"servicio": "Por identificar", "nivel": "Pendiente",
+                        "senal": TEXTO_PENDIENTE, "recomendacion": "Se completa en la próxima corrida.",
+                        "por_que": ""}
+                pendientes += 1
+        # EVIDENCIA: la noticia concreta en la que se basó la IA (o SECOP), para que el
+        # usuario vea de dónde sale la señal y el servicio sugerido.
+        evid = {"titulo": "", "fecha": "", "url": ""}
+        if evid_prev is not None:
+            evid = evid_prev
+        else:
+            try:
+                n_ev = int(data.get("evidencia", 0) or 0)
+            except (TypeError, ValueError):
+                n_ev = 0
+            if 1 <= n_ev <= len(evidencias):
+                evid = dict(evidencias[n_ev - 1])
+            elif evidencias and data.get("senal") != TEXTO_PENDIENTE:
+                evid = dict(evidencias[0])
+            if evid.get("origen") == "secop":
+                evid["titulo"] = "SECOP: " + evid["titulo"][:150]
+        evid_prev = None
+        if evid.get("fecha"):
+            fecha_senal = evid["fecha"]   # la fecha de la señal = la de su evidencia
         fila = {
             "PartitionKey": ("lead" if tipo == "lead_score" else "captura"),
             "RowKey": re.sub(r"[^a-zA-Z0-9]", "_", nombre_limpio)[:80] + f"_{hechos}",
@@ -321,10 +415,15 @@ def main():
             "origen": origen,
             "n_secop": n_secop,
             "fecha_senal": fecha_senal,   # NOVEDAD
+            "por_que": str(data.get("por_que", "") or ""),
+            "evidencia": str(evid.get("titulo", "") or ""),
+            "evidencia_fecha": str(evid.get("fecha", "") or ""),
+            "evidencia_url": str(evid.get("url", "") or ""),
         }
         filas.append(fila)
         hechos += 1
         print(f"  [{hechos}] {nombre_limpio[:20]:20} [{fila['tipo']}] [{fecha_senal or 'sin fecha'}] SEÑAL: {fila['senal']}")
+        print(f"       {fila['servicio']} porque: {fila['por_que'][:110]}  | fuente: {fila['evidencia'][:60]}")
         time.sleep(PAUSA_SEG)
 
     if not escribir:
@@ -352,6 +451,9 @@ def main():
     for f in filas:
         tabla.upsert_entity(f, mode=UpdateMode.REPLACE)
     print(f"\nListo. Tabla '{TABLA_VENTAS}' con {len(filas)} prospectos (con fecha_senal). Refresca Power BI.")
+    if conservados or pendientes:
+        print(f"  Sin respuesta de la IA: {conservados} conservaron su análisis anterior, "
+              f"{pendientes} quedaron pendientes para la próxima corrida.")
 
 
 if __name__ == "__main__":
