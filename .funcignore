@@ -1,4 +1,4 @@
-# ── Entorno local y control de versiones ──
+﻿# â”€â”€ Entorno local y control de versiones â”€â”€
 .git*
 .vscode
 .venv
@@ -9,7 +9,7 @@ __queuestorage__
 local.settings.json
 test
 
-# ── Datos de trabajo y evidencias de validación (se quedan en GitHub) ──
+# â”€â”€ Datos de trabajo y evidencias de validaciÃ³n (se quedan en GitHub) â”€â”€
 *.csv
 *.xlsx
 *.ps1
@@ -18,7 +18,7 @@ test
 *.pbix
 *.pbit
 
-# ── Scripts de validación, diagnóstico, pruebas y limpieza ──
+# â”€â”€ Scripts de validaciÃ³n, diagnÃ³stico, pruebas y limpieza â”€â”€
 test_*
 ver_*
 verificar_*
@@ -37,20 +37,26 @@ recalcular_relevancia.py
 listar_terminos_noticias.py
 revisar_montos.py
 
-# ── Gold que no usa el tablero ──
+# â”€â”€ Gold que no usa el tablero â”€â”€
 resumir_veredictos.py
 resumen_ejecutivo.py
 
-# ── Orquestación local (se reemplaza por el orquestador en Azure) ──
+# â”€â”€ OrquestaciÃ³n local (se reemplaza por el orquestador en Azure) â”€â”€
 orquestador.py
 ejecutar_todo.py
 parametros_monitoreo.json
 
-# ── Inspección y validación interna ──
+# â”€â”€ InspecciÃ³n y validaciÃ³n interna â”€â”€
 gold/inspeccionar_*
 ingestion_silver/clasificacion_eventos/preparar_muestra.py
 ingestion_silver/clasificacion_eventos/prueba_*
 ingestion_silver/clasificacion_eventos/validacion.py
 
-# ── Sin uso ──
-shared/brightdata_client.pyrespaldo_*
+# â”€â”€ Sin uso â”€â”€
+shared/brightdata_client.py
+respaldo_*
+**/__pycache__
+*.pyc
+**/*.csv
+**/*.xlsx
+**/*.md
