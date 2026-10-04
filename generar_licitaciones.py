@@ -177,9 +177,11 @@ def traer_licitaciones():
     hoy = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00.000")
     hasta = (datetime.now(timezone.utc) + timedelta(days=DIAS_FUTURO)).strftime("%Y-%m-%dT00:00:00.000")
     auth = _auth()
-    # traer varias páginas para tener suficientes TI
+    # Traer TODAS las páginas de la ventana de 90 días. Antes se cortaba en 3.000 y,
+    # como vienen ordenadas por fecha de cierre, solo se veían las que cierran en los
+    # próximos días: las de TI con más plazo nunca llegaban.
     todas = []
-    for offset in range(0, 3000, 1000):
+    for offset in range(0, 60000, 1000):        # tope de seguridad: 60 páginas
         params = {
             "$where": f"fecha_de_recepcion_de >= '{hoy}' AND fecha_de_recepcion_de <= '{hasta}'",
             "$limit": 1000, "$offset": offset,
@@ -211,6 +213,10 @@ def main():
     print(f"Consultando licitaciones vigentes (cierran en los próximos {DIAS_FUTURO} días)...")
     crudas = traer_licitaciones()
     print(f"  Trajo {len(crudas)} licitaciones vigentes (todas las categorías)")
+    if crudas:
+        print(f"  Cubren cierres del {str(crudas[0].get('fecha_de_recepcion_de',''))[:10]} "
+              f"al {str(crudas[-1].get('fecha_de_recepcion_de',''))[:10]} "
+              f"(deben llegar cerca de hoy + {DIAS_FUTURO} días)")
 
     filas = []
     for it in crudas:
