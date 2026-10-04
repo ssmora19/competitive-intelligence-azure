@@ -157,6 +157,7 @@ def contar_tendencias(meses_recientes=6):
     corte = (datetime.now(timezone.utc) - timedelta(days=meses_recientes*30)).strftime("%Y-%m-%d")
     conteo = Counter()
     fecha_reciente = {}
+    evidencia = {}          # artículo/repo MÁS RECIENTE que respalda cada tecnología
     for b in cli.list_blobs():
         try:
             d = json.loads(cli.get_blob_client(b.name).download_blob().readall())
@@ -174,7 +175,10 @@ def contar_tendencias(meses_recientes=6):
                 conteo[tec] += 1
                 if fev and (tec not in fecha_reciente or fev > fecha_reciente[tec]):
                     fecha_reciente[tec] = fev
-    return conteo, fecha_reciente
+                if tec not in evidencia or (fev or "") > evidencia[tec]["fecha"]:
+                    evidencia[tec] = {"titulo": (d.get("titulo", "") or "").strip(),
+                                      "fecha": fev or "", "url": d.get("url", "") or ""}
+    return conteo, fecha_reciente, evidencia
 
 
 # Contenedores Silver con contratos SECOP (los 3 rubros = toda la demanda)
@@ -196,6 +200,7 @@ def contar_secop():
     monto = Counter()
     entidades = {}
     fecha_reciente = {}
+    evidencia = {}          # contrato MÁS RECIENTE que respalda cada tecnología
     for cont in CONT_SECOP_SILVER:
         try:
             cli = bs.get_container_client(cont)
@@ -226,7 +231,11 @@ def contar_secop():
                         entidades.setdefault(tec, Counter())[ent] += 1
                     if ffirma and (tec not in fecha_reciente or ffirma > fecha_reciente[tec]):
                         fecha_reciente[tec] = ffirma
-    return conteo, monto, entidades, fecha_reciente
+                    if tec not in evidencia or (ffirma or "") > evidencia[tec]["fecha"]:
+                        evidencia[tec] = {
+                            "objeto": (secop.get("objeto", "") or d.get("titulo", "") or "").strip(),
+                            "entidad": ent, "fecha": ffirma or "", "url": d.get("url", "") or ""}
+    return conteo, monto, entidades, fecha_reciente, evidencia
 
 
 def descubrir_tecnologias_ia(muestra_titulos):
@@ -277,7 +286,8 @@ def _juntar_titulos():
                 continue
             if d.get("fuente_original") in FUENTES_TEND:
                 t = (d.get("titulo","") or "").strip()
-                if t: titulos.append(t)
+                if t: titulos.append({"titulo": t, "url": d.get("url", "") or "",
+                                      "fecha": str(d.get("fecha_evento_utc") or "")[:10]})
     except Exception:
         pass
     return titulos
@@ -286,12 +296,12 @@ def _juntar_titulos():
 def main():
     escribir = "--escribir" in sys.argv
     print("Contando tecnologías en tendencias globales...")
-    tend, tend_fecha = contar_tendencias(meses_recientes=6)
+    tend, tend_fecha, tend_evid = contar_tendencias(meses_recientes=6)
     print("Contando tecnologías en contratos SECOP (Colombia)...")
-    secop_n, secop_monto, secop_entidades, secop_fecha = contar_secop()
+    secop_n, secop_monto, secop_entidades, secop_fecha, secop_evid = contar_secop()
     print("Descubriendo tecnologías NUEVAS con IA (fuera de la lista)...")
-    titulos = _juntar_titulos()
-    nuevas_ia = descubrir_tecnologias_ia(titulos)
+    titulos_info = _juntar_titulos()
+    nuevas_ia = descubrir_tecnologias_ia([t["titulo"] for t in titulos_info])
 
     filas = []
     orden = 0
@@ -345,6 +355,14 @@ def main():
             "entidades_compran": top_ents,
             "fecha_reciente": fecha_rec,
             "fecha_tendencia_global": tend_fecha.get(tec, ""),
+            # SUSTENTO verificable: el contrato SECOP y el artículo más recientes
+            "evid_contrato": secop_evid.get(tec, {}).get("objeto", "")[:200],
+            "evid_contrato_entidad": secop_evid.get(tec, {}).get("entidad", ""),
+            "evid_contrato_fecha": secop_evid.get(tec, {}).get("fecha", ""),
+            "evid_contrato_url": secop_evid.get(tec, {}).get("url", ""),
+            "evid_tendencia": tend_evid.get(tec, {}).get("titulo", "")[:200],
+            "evid_tendencia_fecha": tend_evid.get(tec, {}).get("fecha", ""),
+            "evid_tendencia_url": tend_evid.get(tec, {}).get("url", ""),
         })
 
     # agregar las tecnologías NUEVAS descubiertas por IA (fuera de la lista fija)
@@ -356,6 +374,9 @@ def main():
             nombre = str(nv.get("nombre",""))[:40]
             veces = nv.get("veces", 0)
             quees = str(nv.get("que_es",""))[:50]
+            # sustento: el primer título que menciona la tecnología descubierta
+            clave = _norm(nombre.split("(")[0]).strip()
+            ev = next((t for t in titulos_info if clave and clave in _norm(t["titulo"])), {})
             print(f"  {nombre:40} (x{veces})  {quees}")
             orden += 1
             filas.append({
@@ -373,6 +394,9 @@ def main():
                 "fecha_reciente": "",
                 "fecha_tendencia_global": "",
                 "que_es": quees,
+                "evid_tendencia": ev.get("titulo", "")[:200],
+                "evid_tendencia_fecha": ev.get("fecha", ""),
+                "evid_tendencia_url": ev.get("url", ""),
             })
 
     if not escribir:

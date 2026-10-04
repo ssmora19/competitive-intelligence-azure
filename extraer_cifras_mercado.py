@@ -97,6 +97,7 @@ def main() -> None:
                     "texto": f"{t}. {de}"[:220],
                     "titulo": t,
                     "fecha": fecha,
+                    "url": d.get("url", "") or "",      # enlace a la noticia (sustento verificable)
                 })
 
     # priorizar las que tienen números Y son recientes
@@ -133,8 +134,11 @@ def main() -> None:
         print(f"  (no se pudo extraer con IA: {ex})")
 
     if not cifras:
-        print("  Usando cifras de RESPALDO.")
-        cifras = RESPALDO
+        # Sin respuesta de la IA NO se escriben cifras de respaldo sin fuente: se conservan
+        # las de la corrida anterior, que sí tienen su noticia y enlace como sustento.
+        print("  La IA no respondió: se CONSERVAN las cifras anteriores (con su fuente).")
+        print("  Rate limit u otro error: revisar este paso.")
+        return
     else:
         # enriquecer cada cifra con la fuente y fecha del titular que indicó la IA
         for c in cifras:
@@ -142,9 +146,11 @@ def main() -> None:
             if isinstance(idt, int) and 0 <= idt < len(muestra):
                 c["fuente"] = muestra[idt]["titulo"]
                 c["fecha"] = muestra[idt]["fecha"]
+                c["url"] = muestra[idt].get("url", "")
             else:
                 c["fuente"] = ""
                 c["fecha"] = ""
+                c["url"] = ""
 
     cifras = cifras[:3]  # máximo 3, pero acepta 2
     print("\n=== CIFRAS EXTRAÍDAS ===")
@@ -167,6 +173,7 @@ def main() -> None:
             "etiqueta": str(c.get("etiqueta", "")),
             "fuente": str(c.get("fuente", "")),
             "fecha": str(c.get("fecha", "")),
+            "url": str(c.get("url", "")),
         }, mode=UpdateMode.REPLACE)
     print(f"\nListo. Tabla '{TABLA}' con {len(cifras)} cifras (con fuente y fecha). Refresca Power BI.")
 
