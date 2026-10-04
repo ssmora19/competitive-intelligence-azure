@@ -79,6 +79,106 @@ def alertas_competencia(tsc):
     return alertas[:6]
 
 
+# ─────────────────────────────────────────────────────────────
+# RELACIÓN DE UNA ENTIDAD CON TAK (cliente propio / cliente de un competidor / mercado)
+# Se cruza el nombre SECOP de la entidad con clientes.json y clientes_competencia.json.
+# ─────────────────────────────────────────────────────────────
+_relaciones = None
+VENTANA_VENCE = 90          # días hacia adelante para "contratos por vencer"
+PALABRAS_RENOVABLE = ("soporte", "renovacion", "renovar", "suscripcion", "licencia",
+                      "mantenimiento", "servicio", "actualizacion", "garantia", "administracion")
+
+
+def _cargar_relaciones():
+    global _relaciones
+    if _relaciones is not None:
+        return _relaciones
+    base = os.path.dirname(os.path.abspath(__file__))
+    _relaciones = {}
+    try:
+        with open(os.path.join(base, "ingestion_clientes_competencia", "clientes_competencia.json"), encoding="utf-8") as f:
+            for c in json.load(f):
+                etiqueta = f"Cliente de {c.get('competidor', 'la competencia')}"
+                for n in (c.get("nombre_secop"), c.get("entidad")):
+                    if n:
+                        _relaciones[_norm(n)] = etiqueta
+    except Exception:
+        pass
+    try:
+        with open(os.path.join(base, "ingestion_clientes", "clientes.json"), encoding="utf-8") as f:
+            for c in json.load(f):          # un cliente propio prevalece sobre "cliente de"
+                for n in (c.get("secop_nombres") or []) + [c.get("nombre")]:
+                    if n:
+                        _relaciones[_norm(n)] = "Cliente tuyo"
+    except Exception:
+        pass
+    return _relaciones
+
+
+def _relacion(entidad):
+    """QUÉ HACE: dice si la entidad es cliente de TAK, cliente de un competidor o 'Mercado'."""
+    rel = _cargar_relaciones()
+    n = _norm(entidad)
+    if not n:
+        return "Mercado"
+    if n in rel:
+        return rel[n]
+    for k, v in rel.items():                  # coincidencia parcial (nombres largos de SECOP)
+        if len(k) >= 8 and (k in n or n in k):
+            return v
+    return "Mercado"
+
+
+def alertas_vencimientos(tsc):
+    """
+    Contratos de TI que las entidades tienen CON COMPETIDORES y que terminan en los
+    próximos VENTANA_VENCE días: la entidad tendrá que renovar o volver a contratar,
+    y TAK puede acercarse ANTES de que salga la licitación.
+    """
+    t = tsc.get_table_client("goldContratos")
+    hoy = datetime.now(timezone.utc).date()
+    alertas = []
+    for e in t.list_entities():
+        if e.get("es_tak") == "S\u00ed":
+            continue
+        ff = e.get("fecha_fin")
+        if not ff:
+            continue
+        try:
+            fin = ff.date() if hasattr(ff, "date") else datetime.fromisoformat(str(ff)[:10]).date()
+        except ValueError:
+            continue
+        dias = (fin - hoy).days
+        if dias < 0 or dias > VENTANA_VENCE:
+            continue
+        try: valor = float(e.get("valor") or 0)
+        except: valor = 0
+        objeto = (e.get("objeto", "") or "")
+        renovable = any(p in _norm(objeto) for p in PALABRAS_RENOVABLE)
+        entidad = e.get("entidad_contratante", "?")
+        marcas = []
+        if renovable:
+            marcas.append("Renovable")
+        if _relacion(entidad) == "Cliente tuyo":
+            marcas.append("Cliente tuyo")
+        alertas.append({
+            "tipo": "VENCIMIENTO",
+            "titulo": entidad,
+            "detalle": objeto[:160],
+            "entidad": entidad,
+            "fecha": fin.isoformat(),
+            "monto": valor,
+            "categoria": f"Hoy con {e.get('competidor', '?')}",
+            "dias": dias,
+            "por_que": " \u00b7 ".join(marcas),
+            "clave": e.get("id_secop", "") or e.get("RowKey", ""),
+            "_renovable": renovable,
+        })
+    # primero los renovables, luego los que vencen antes, y a igual fecha los de mayor valor
+    alertas.sort(key=lambda x: (not x["_renovable"], x["dias"], -x["monto"]))
+    return alertas[:10]
+
+
 def alertas_licitaciones(tsc):
     """Licitaciones abiertas que cierran pronto."""
     try:
@@ -101,7 +201,7 @@ def alertas_licitaciones(tsc):
             "monto": valor,
             "categoria": e.get("categoria",""),
             "dias": dias,
-            "por_que": "Oportunidad abierta que TAK puede ganar antes del cierre.",
+            "por_que": _relacion(e.get("entidad", "")),   # Cliente tuyo / Cliente de X / Mercado
             "clave": e.get("RowKey",""),
         })
     alertas.sort(key=lambda x: x.get("dias", 999))
@@ -157,6 +257,23 @@ def alertas_regulatorio(bs):
     return alertas[:5]
 
 
+def _por_que_cliente(e):
+    """QUÉ HACE: arma la justificación visible de una señal de cliente:
+    por qué se sugiere ese servicio y de qué noticia/fuente sale."""
+    servicio = e.get("servicio", "") or "este servicio"
+    razon = (e.get("por_que", "") or "").strip()
+    fuente = (e.get("evidencia", "") or "").strip()
+    fecha_f = str(e.get("evidencia_fecha", "") or "")[:10]
+    partes = []
+    if razon and servicio.lower().startswith("por identificar"):
+        partes.append(f"Por qu\u00e9 sin servicio definido: {razon}")
+    elif razon:
+        partes.append(f"Por qu\u00e9 {servicio}: {razon}")
+    if fuente:
+        partes.append(f"Fuente: {fuente}" + (f" ({fecha_f})" if fecha_f else ""))
+    return " | ".join(partes) or "Se\u00f1al de oportunidad de venta o captura."
+
+
 def alertas_clientes(tsc):
     """Señales de compra de clientes (de goldVentas) — SOLO con fecha reciente."""
     try:
@@ -170,6 +287,9 @@ def alertas_clientes(tsc):
         # SOLO las que tienen señal real Y fecha reciente
         if not senal or "sin noticia" in _norm(senal) or "sin actividad" in _norm(senal):
             continue
+        # Prospectos sin análisis real de IA (límite de Groq): no son una señal útil.
+        if "actividad relevante" in _norm(senal) or "pendiente de analisis" in _norm(senal):
+            continue
         if not fecha:   # sin fecha -> no es señal fresca -> fuera de alertas
             continue
         alertas.append({
@@ -180,7 +300,7 @@ def alertas_clientes(tsc):
             "fecha": fecha,
             "monto": 0,
             "categoria": e.get("servicio",""),
-            "por_que": "Se\u00f1al de oportunidad de venta o captura.",
+            "por_que": _por_que_cliente(e),
             "clave": e.get("RowKey",""),
         })
     # ordenar por fecha reciente
@@ -199,14 +319,17 @@ def main():
     comp = alertas_competencia(tsc)
     lic = alertas_licitaciones(tsc)
     reg = alertas_regulatorio(bs)
-    cli = alertas_clientes(tsc)
+    # Las señales de clientes viven en la sección Ventas: no se repiten aquí.
+    venc = alertas_vencimientos(tsc)
 
     print(f"  Competencia (contratos recientes): {len(comp)}")
     print(f"  Licitaciones (cierran pronto):     {len(lic)}")
     print(f"  Regulatorio (normativo reciente):  {len(reg)}")
-    print(f"  Clientes (señales):                {len(cli)}")
+    print(f"  Contratos por vencer ({VENTANA_VENCE} días):   {len(venc)}")
 
-    todas = comp + lic + reg + cli
+    # La competencia (contratos ganados) vive en la sección Competidores: no se muestra
+    # en el Centro de Alertas, pero se sigue guardando por si se necesita.
+    todas = comp + lic + reg + venc
     orden = 0
     filas = []
     for a in todas:
