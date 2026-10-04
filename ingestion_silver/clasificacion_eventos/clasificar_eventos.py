@@ -25,11 +25,17 @@ DECISIONES DE DISEÑO (defendibles)
 - TRAZABILIDAD: nunca se pierde el valor de las reglas; queda en tipo_senal_reglas.
 - SOLO RELEVANTES CON EVENTO: no gasta llamadas en ruido ni en registros sin evento.
 - RESPETA EL LÍMITE: pausa entre llamadas (config_eventos.GROQ_PAUSA_SEG).
+- TOPE POR CORRIDA (--limite N): Groq gratis da 200.000 tokens al día (ventana
+  móvil de 24 h) y el tablero también los necesita. El orquestador corre con
+  --limite 150 (~68.000 tokens); lo pendiente avanza en las corridas siguientes.
+- SI GROQ DICE "BASTA" (error 429): se detiene ordenadamente, sin caerse; lo ya
+  clasificado queda guardado y lo pendiente sigue en la próxima corrida.
 
 CÓMO SE EJECUTA (desde ingestion_silver/clasificacion_eventos/)
     python clasificar_eventos.py silver-competidores        # un contenedor
     python clasificar_eventos.py silver-competidores 50     # tope de 50 (prueba)
     python clasificar_eventos.py --todos                    # todos los contenedores
+    python clasificar_eventos.py --todos --limite 150       # todos, máx. 150 por corrida
 
 RECOMENDACIÓN
     Empieza por UN contenedor con un tope pequeño para verificar que actualiza
@@ -91,6 +97,7 @@ def procesar_contenedor(blob_svc, contenedor: str, tope: int | None, motor) -> d
     cli = blob_svc.get_container_client(contenedor)
 
     procesados = cambiados = saltados_ya = saltados_norel = saltados_secop = 0
+    limite_groq = False
     print(f"\n{'='*60}\n{contenedor}\n{'='*60}")
     for blob in cli.list_blobs():
         if tope is not None and procesados >= tope:
@@ -118,8 +125,16 @@ def procesar_contenedor(blob_svc, contenedor: str, tope: int | None, motor) -> d
             saltados_norel += 1
             continue
 
-        # clasificar con el modelo
-        etiqueta, _ = motor.clasificar(_texto(d))
+        # clasificar con el modelo (si Groq agota el cupo, se para ordenadamente)
+        try:
+            etiqueta, _ = motor.clasificar(_texto(d))
+        except Exception as ex:  # noqa: BLE001
+            if "429" in str(ex) or "rate_limit" in str(ex).lower():
+                print(f"\n  Groq: límite alcanzado. Rate limit: {str(ex)[:300]}")
+                print("  Lo ya clasificado quedó guardado; lo pendiente sigue en la próxima corrida.")
+                limite_groq = True
+                break
+            raise
         procesados += 1
 
         # opción 3: reemplazar tipo_senal, guardar original en tipo_senal_reglas
@@ -143,7 +158,8 @@ def procesar_contenedor(blob_svc, contenedor: str, tope: int | None, motor) -> d
 
     resumen = {"contenedor": contenedor, "procesados": procesados,
                "cambiados": cambiados, "ya_procesados": saltados_ya,
-               "secop_conservados": saltados_secop, "no_relevantes": saltados_norel}
+               "secop_conservados": saltados_secop, "no_relevantes": saltados_norel,
+               "limite_groq": limite_groq}
     print(f"\n  → procesados={procesados}  cambiados={cambiados}  "
           f"ya_estaban={saltados_ya}  secop_conservados={saltados_secop}  "
           f"no_aplican={saltados_norel}")
@@ -155,6 +171,11 @@ def main() -> None:
 
     args = sys.argv[1:]
     todos = "--todos" in args
+    limite_total = None
+    if "--limite" in args:
+        i = args.index("--limite")
+        limite_total = int(args[i + 1])
+        del args[i:i + 2]
     args = [a for a in args if not a.startswith("--")]
     tope = None
     objetivo = CONTENEDORES if todos else []
@@ -171,7 +192,19 @@ def main() -> None:
     motor = clasificador.obtener_motor()
     print(f"Motor: {cfg.MOTOR} / {cfg.MODELO_GROQ}")
 
-    resumenes = [procesar_contenedor(blob_svc, c, tope, motor) for c in objetivo]
+    resumenes = []
+    restante = limite_total
+    for c in objetivo:
+        if restante is not None and restante <= 0:
+            print(f"\nTope de {limite_total} por corrida alcanzado; lo pendiente sigue en la próxima.")
+            break
+        tope_c = tope if restante is None else (restante if tope is None else min(tope, restante))
+        r = procesar_contenedor(blob_svc, c, tope_c, motor)
+        resumenes.append(r)
+        if restante is not None:
+            restante -= r["procesados"]
+        if r["limite_groq"]:
+            break
 
     print(f"\n{'='*60}\nRESUMEN FINAL\n{'='*60}")
     tot_p = sum(r["procesados"] for r in resumenes)

@@ -1,0 +1,893 @@
+Corrida 20261004-044249: 120 pasos registrados
+
+==============================================================================
+OK    Bronze clientes/clientes_conocidos  (373 s, 2026-10-04 04:49:05 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "DANE", "status": "skip_delta", "items_fetched": 100, "items_new": 0, "items_skipped": 100}, {"empresa": "DANE", "status": "skip_delta", "items_fet
+
+==============================================================================
+OK    Bronze clientes/secop_licitaciones  (145 s, 2026-10-04 04:51:30 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "sector_publico", "status": "skip_delta", "items_fetched": 200, "items_new": 0, "items_skipped": 200}
+
+==============================================================================
+OK    Bronze competidores/secop_competidores  (265 s, 2026-10-04 04:55:55 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "IBM Corporation", "status": "ok", "items_fetched": 32, "items_new": 32, "items_skipped": 0, "errores": 0}, {"empresa": "Deloitte", "status": "ok",
+
+==============================================================================
+OK    Bronze competidores/github_competidores  (66 s, 2026-10-04 04:57:01 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Accenture", "status": "ok", "items_fetched": 4, "items_new": 1, "items_skipped": 3, "errores": 0}, {"empresa": "Deloitte", "status": "skip_delta",
+
+==============================================================================
+OK    Bronze competidores/noticias_competidores  (52 s, 2026-10-04 04:57:52 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Accenture", "status": "ok", "items_fetched": 10, "items_new": 1, "items_skipped": 9, "errores": 0}, {"empresa": "IBM Corporation", "status": "ok",
+
+==============================================================================
+OK    Bronze competidores/youtube  (68 s, 2026-10-04 04:59:01 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Accenture", "status": "skip_delta", "items_fetched": 5, "items_new": 0, "items_skipped": 5}, {"empresa": "IBM Corporation", "status": "skip_delta"
+
+==============================================================================
+OK    Bronze mercado/noticias_economicas  (9 s, 2026-10-04 04:59:10 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "ok", "items_fetched": 50, "items_new": 12, "items_skipped": 38, "errores": 0}
+
+==============================================================================
+OK    Bronze tendencias/github_trending  (30 s, 2026-10-04 04:59:40 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_global", "status": "skip_delta", "items_fetched": 25, "items_new": 0, "items_skipped": 25}
+
+==============================================================================
+OK    Bronze tendencias/rss_fabricantes  (12 s, 2026-10-04 04:59:52 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "fabricantes_tak", "status": "ok", "items_fetched": 23, "items_new": 5, "items_skipped": 18, "errores": 0}
+
+==============================================================================
+OK    Bronze tendencias/rss_tech_general  (5 s, 2026-10-04 04:59:57 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_global", "status": "ok", "items_fetched": 30, "items_new": 10, "items_skipped": 20, "errores": 0}
+
+==============================================================================
+OK    Bronze tendencias/rss_colombia  (3 s, 2026-10-04 05:00:00 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "skip_delta", "items_fetched": 10, "items_new": 0, "items_skipped": 10}
+
+==============================================================================
+OK    Bronze proveedores/rss_proveedores  (4 s, 2026-10-04 05:00:04 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "fabricantes_tak", "status": "skip_delta", "items_fetched": 20, "items_new": 0, "items_skipped": 20}
+
+==============================================================================
+OK    Bronze proveedores/rss_ecosistema  (6 s, 2026-10-04 05:00:10 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "ecosistema_colombia", "status": "ok", "items_fetched": 45, "items_new": 15, "items_skipped": 30, "errores": 0}
+
+==============================================================================
+OK    Bronze proveedores/startups_tech_colombia  (9 s, 2026-10-04 05:00:19 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "ecosistema_colombia", "status": "ok", "items_fetched": 50, "items_new": 13, "items_skipped": 37, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/noticias_regulatorio  (6 s, 2026-10-04 05:00:25 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "ok", "items_fetched": 40, "items_new": 1, "items_skipped": 39, "errores": 0}
+
+==============================================================================
+OK    Bronze competidores/web  (362 s, 2026-10-04 05:25:15 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Accenture", "status": "ok", "items_fetched": 4, "items_new": 4, "items_skipped": 0, "errores": 0}, {"empresa": "IBM Corporation", "status": "ok", 
+
+==============================================================================
+OK    Bronze mercado/dane_estadisticas  (4 s, 2026-10-04 05:25:28 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "no_data", "items_new": 0}
+
+==============================================================================
+OK    Bronze mercado/reportes_economicos  (14 s, 2026-10-04 05:25:42 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "ok", "items_fetched": 2, "items_new": 2, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze mercado/ontic_barreras_adopcion  (29 s, 2026-10-04 05:26:11 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "ok", "items_fetched": 3, "items_new": 3, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze proveedores/web_proveedores_core  (117 s, 2026-10-04 05:28:20 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Oracle", "status": "ok", "items_fetched": 3, "items_new": 3, "items_skipped": 0, "errores": 0}, {"empresa": "IBM", "status": "ok", "items_fetched"
+
+==============================================================================
+OK    Bronze proveedores/licenciamiento  (27 s, 2026-10-04 05:28:46 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Oracle", "status": "no_data", "items_new": 0}, {"empresa": "IBM", "status": "no_data", "items_new": 0}, {"empresa": "AWS", "status": "no_data", "i
+
+==============================================================================
+OK    Bronze proveedores/noticias_proveedores  (39 s, 2026-10-04 05:29:25 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "Oracle", "status": "ok", "items_fetched": 1, "items_new": 1, "items_skipped": 0, "errores": 0}, {"empresa": "IBM", "status": "ok", "items_fetched"
+
+==============================================================================
+OK    Bronze capacidades/web_tak  (17 s, 2026-10-04 05:29:42 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "TAK", "status": "ok", "items_fetched": 2, "items_new": 2, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze capacidades/certificaciones_fabricantes  (16 s, 2026-10-04 05:29:59 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "fabricantes_tak", "status": "ok", "items_fetched": 3, "items_new": 3, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze tendencias/reportes_sectoriales  (7 s, 2026-10-04 05:30:06 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_global", "status": "ok", "items_fetched": 2, "items_new": 2, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze tendencias/documentacion_tecnica  (8 s, 2026-10-04 05:30:15 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "fabricantes_tak", "status": "no_data", "items_new": 0}
+
+==============================================================================
+OK    Bronze tendencias/eventos_tech  (6 s, 2026-10-04 05:30:21 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mercado_colombia", "status": "no_data", "items_new": 0}
+
+==============================================================================
+OK    Bronze tendencias/patentes_tech  (9 s, 2026-10-04 05:30:31 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "innovacion_colombia", "status": "ok", "items_fetched": 30, "items_new": 1, "items_skipped": 29, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/mintic  (7 s, 2026-10-04 05:30:38 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "mintic", "status": "ok", "items_fetched": 1, "items_new": 1, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/normativa_tic  (4 s, 2026-10-04 05:30:42 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "normativa_tic", "status": "ok", "items_fetched": 1, "items_new": 1, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/sic_datos  (6 s, 2026-10-04 05:30:49 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "SIC", "status": "ok", "items_fetched": 2, "items_new": 2, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/colombia_compra  (10 s, 2026-10-04 05:30:59 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "colombia_compra_eficiente", "status": "ok", "items_fetched": 3, "items_new": 3, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/financiamiento_tech  (18 s, 2026-10-04 05:31:17 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "fuentes_financiamiento", "status": "ok", "items_fetched": 3, "items_new": 3, "items_skipped": 0, "errores": 0}
+
+==============================================================================
+OK    Bronze regulatorio/inversion_tech  (8 s, 2026-10-04 05:31:26 UTC)
+------------------------------------------------------------------------------
+   {"empresa": "ecosistema_inversion", "status": "no_data", "items_new": 0}
+
+==============================================================================
+OK    Bronze clientes-competencia/clientes_competencia  (827 s, 2026-10-04 05:45:14 UTC)
+------------------------------------------------------------------------------
+   [{"empresa": "DIAN (cliente de IT CROWD)", "status": "skip_delta", "items_fetched": 10, "items_new": 0, "items_skipped": 10}, {"empresa": "Gobernacion de Antioq
+
+==============================================================================
+OK    Silver bronze-competidores 0-200  (5 s, 2026-10-04 05:45:19 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 7, "skip_existente": 18
+
+==============================================================================
+OK    Silver bronze-competidores 200-400  (5 s, 2026-10-04 05:45:24 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "200-400", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 0, "skip_existente": 
+
+==============================================================================
+OK    Silver bronze-competidores 400-600  (4 s, 2026-10-04 05:45:28 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "400-600", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 0, "skip_existente": 
+
+==============================================================================
+OK    Silver bronze-competidores 600-800  (5 s, 2026-10-04 05:45:33 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "600-800", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 0, "skip_existente": 
+
+==============================================================================
+OK    Silver bronze-competidores 800-1000  (4 s, 2026-10-04 05:45:38 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "800-1000", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 0, "skip_existente":
+
+==============================================================================
+OK    Silver bronze-competidores 1000-1200  (4 s, 2026-10-04 05:45:42 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "1000-1200", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 0, "skip_existente"
+
+==============================================================================
+OK    Silver bronze-competidores 1200-1400  (5 s, 2026-10-04 05:45:47 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "1200-1400", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 25, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 1400-1600  (5 s, 2026-10-04 05:45:52 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "1400-1600", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 18, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 1600-1800  (4 s, 2026-10-04 05:45:56 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "1600-1800", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 17, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 1800-2000  (4 s, 2026-10-04 05:46:01 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "1800-2000", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 18, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 2000-2200  (5 s, 2026-10-04 05:46:05 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "2000-2200", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 49, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 2200-2400  (4 s, 2026-10-04 05:46:09 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "2200-2400", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 4, "skip_existente"
+
+==============================================================================
+OK    Silver bronze-competidores 2400-2600  (4 s, 2026-10-04 05:46:14 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "2400-2600", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 52, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 2600-2800  (5 s, 2026-10-04 05:46:19 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "2600-2800", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 14, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 2800-3000  (4 s, 2026-10-04 05:46:23 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "2800-3000", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 8, "skip_existente"
+
+==============================================================================
+OK    Silver bronze-competidores 3000-3200  (4 s, 2026-10-04 05:46:27 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "3000-3200", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 7, "skip_existente"
+
+==============================================================================
+OK    Silver bronze-competidores 3200-3400  (4 s, 2026-10-04 05:46:31 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "3200-3400", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 14, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 3400-3600  (4 s, 2026-10-04 05:46:35 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "3400-3600", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 28, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 3600-3800  (7 s, 2026-10-04 05:46:42 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "3600-3800", "total_en_contenedor": 3881, "en_tanda": 200, "escritos": 78, "skip_existente
+
+==============================================================================
+OK    Silver bronze-competidores 3800-4000  (3 s, 2026-10-04 05:46:46 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-competidores", "fuente_filtro": null, "rango": "3800-4000", "total_en_contenedor": 3881, "en_tanda": 81, "escritos": 33, "skip_existente"
+
+==============================================================================
+OK    Silver bronze-clientes 0-200  (6 s, 2026-10-04 05:46:52 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 141, "skip_existente": 59, 
+
+==============================================================================
+OK    Silver bronze-clientes 200-400  (7 s, 2026-10-04 05:46:59 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "200-400", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 138, "skip_existente": 62
+
+==============================================================================
+OK    Silver bronze-clientes 400-600  (8 s, 2026-10-04 05:47:07 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "400-600", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 167, "skip_existente": 32
+
+==============================================================================
+OK    Silver bronze-clientes 600-800  (6 s, 2026-10-04 05:47:13 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "600-800", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 27, "skip_existente": 99,
+
+==============================================================================
+OK    Silver bronze-clientes 800-1000  (6 s, 2026-10-04 05:47:19 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "800-1000", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 79, "skip_existente": 10
+
+==============================================================================
+OK    Silver bronze-clientes 1000-1200  (5 s, 2026-10-04 05:47:24 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "1000-1200", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 28, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 1200-1400  (5 s, 2026-10-04 05:47:29 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "1200-1400", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 34, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 1400-1600  (4 s, 2026-10-04 05:47:34 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "1400-1600", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 33, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 1600-1800  (5 s, 2026-10-04 05:47:39 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "1600-1800", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 34, "skip_existente": 9
+
+==============================================================================
+OK    Silver bronze-clientes 1800-2000  (5 s, 2026-10-04 05:47:44 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "1800-2000", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 62, "skip_existente": 9
+
+==============================================================================
+OK    Silver bronze-clientes 2000-2200  (5 s, 2026-10-04 05:47:50 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "2000-2200", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 67, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 2200-2400  (6 s, 2026-10-04 05:47:56 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "2200-2400", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 53, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 2400-2600  (5 s, 2026-10-04 05:48:01 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "2400-2600", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 46, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 2600-2800  (4 s, 2026-10-04 05:48:05 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "2600-2800", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 33, "skip_existente": 7
+
+==============================================================================
+OK    Silver bronze-clientes 2800-3000  (5 s, 2026-10-04 05:48:10 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "2800-3000", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 6, "skip_existente": 11
+
+==============================================================================
+OK    Silver bronze-clientes 3000-3200  (5 s, 2026-10-04 05:48:15 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "3000-3200", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 4, "skip_existente": 16
+
+==============================================================================
+OK    Silver bronze-clientes 3200-3400  (5 s, 2026-10-04 05:48:21 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "3200-3400", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 2, "skip_existente": 15
+
+==============================================================================
+OK    Silver bronze-clientes 3400-3600  (5 s, 2026-10-04 05:48:25 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "3400-3600", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 5, "skip_existente": 11
+
+==============================================================================
+OK    Silver bronze-clientes 3600-3800  (5 s, 2026-10-04 05:48:31 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "3600-3800", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 5, "skip_existente": 11
+
+==============================================================================
+OK    Silver bronze-clientes 3800-4000  (5 s, 2026-10-04 05:48:36 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "3800-4000", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 2, "skip_existente": 14
+
+==============================================================================
+OK    Silver bronze-clientes 4000-4200  (5 s, 2026-10-04 05:48:41 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "4000-4200", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 40, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 4200-4400  (5 s, 2026-10-04 05:48:46 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "4200-4400", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 17, "skip_existente": 1
+
+==============================================================================
+OK    Silver bronze-clientes 4400-4600  (6 s, 2026-10-04 05:48:53 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "4400-4600", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 93, "skip_existente": 7
+
+==============================================================================
+OK    Silver bronze-clientes 4600-4800  (7 s, 2026-10-04 05:49:00 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "4600-4800", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 134, "skip_existente": 
+
+==============================================================================
+OK    Silver bronze-clientes 4800-5000  (5 s, 2026-10-04 05:49:05 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "4800-5000", "total_en_contenedor": 5079, "en_tanda": 200, "escritos": 2, "skip_existente": 16
+
+==============================================================================
+OK    Silver bronze-clientes 5000-5200  (3 s, 2026-10-04 05:49:08 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes", "fuente_filtro": null, "rango": "5000-5200", "total_en_contenedor": 5079, "en_tanda": 79, "escritos": 1, "skip_existente": 39,
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 0-200  (6 s, 2026-10-04 05:49:14 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 146, "skip_exis
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 200-400  (6 s, 2026-10-04 05:49:20 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "200-400", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 131, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 400-600  (5 s, 2026-10-04 05:49:26 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "400-600", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 100, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 600-800  (6 s, 2026-10-04 05:49:32 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "600-800", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 147, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 800-1000  (5 s, 2026-10-04 05:49:38 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "800-1000", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 97, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 1000-1200  (6 s, 2026-10-04 05:49:44 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "1000-1200", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 100, "skip_
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 1200-1400  (4 s, 2026-10-04 05:49:48 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "1200-1400", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 42, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 1400-1600  (5 s, 2026-10-04 05:49:53 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "1400-1600", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 62, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 1600-1800  (4 s, 2026-10-04 05:49:58 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "1600-1800", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 35, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 1800-2000  (5 s, 2026-10-04 05:50:03 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "1800-2000", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 34, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 2000-2200  (5 s, 2026-10-04 05:50:08 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "2000-2200", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 73, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 2200-2400  (5 s, 2026-10-04 05:50:13 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "2200-2400", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 51, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 2400-2600  (5 s, 2026-10-04 05:50:19 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "2400-2600", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 54, "skip_e
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 2600-2800  (5 s, 2026-10-04 05:50:24 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "2600-2800", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 9, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 2800-3000  (4 s, 2026-10-04 05:50:28 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "2800-3000", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 6, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 3000-3200  (5 s, 2026-10-04 05:50:34 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "3000-3200", "total_en_contenedor": 3290, "en_tanda": 200, "escritos": 9, "skip_ex
+
+==============================================================================
+OK    Silver bronze-clientes-competencia 3200-3400  (3 s, 2026-10-04 05:50:37 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-clientes-competencia", "fuente_filtro": null, "rango": "3200-3400", "total_en_contenedor": 3290, "en_tanda": 90, "escritos": 11, "skip_ex
+
+==============================================================================
+OK    Silver bronze-mercado 0-200  (3 s, 2026-10-04 05:50:40 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-mercado", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 136, "en_tanda": 136, "escritos": 17, "skip_existente": 100, "s
+
+==============================================================================
+OK    Silver bronze-proveedores 0-200  (5 s, 2026-10-04 05:50:45 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-proveedores", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 353, "en_tanda": 200, "escritos": 53, "skip_existente": 106
+
+==============================================================================
+OK    Silver bronze-proveedores 200-400  (3 s, 2026-10-04 05:50:48 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-proveedores", "fuente_filtro": null, "rango": "200-400", "total_en_contenedor": 353, "en_tanda": 153, "escritos": 31, "skip_existente": 6
+
+==============================================================================
+OK    Silver bronze-regulatorio 0-200  (2 s, 2026-10-04 05:50:51 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-regulatorio", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 114, "en_tanda": 114, "escritos": 26, "skip_existente": 57,
+
+==============================================================================
+OK    Silver bronze-tendencias 0-200  (3 s, 2026-10-04 05:50:54 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-tendencias", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 580, "en_tanda": 200, "escritos": 27, "skip_existente": 100,
+
+==============================================================================
+OK    Silver bronze-tendencias 200-400  (4 s, 2026-10-04 05:50:59 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-tendencias", "fuente_filtro": null, "rango": "200-400", "total_en_contenedor": 580, "en_tanda": 200, "escritos": 58, "skip_existente": 87
+
+==============================================================================
+OK    Silver bronze-tendencias 400-600  (4 s, 2026-10-04 05:51:03 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-tendencias", "fuente_filtro": null, "rango": "400-600", "total_en_contenedor": 580, "en_tanda": 180, "escritos": 82, "skip_existente": 95
+
+==============================================================================
+OK    Silver bronze-capacidades 0-200  (2 s, 2026-10-04 05:51:05 UTC)
+------------------------------------------------------------------------------
+   {"contenedor": "bronze-capacidades", "fuente_filtro": null, "rango": "0-200", "total_en_contenedor": 85, "en_tanda": 85, "escritos": 41, "skip_existente": 9, "s
+
+==============================================================================
+OK    Clasificación tema/sentimiento (Gemini)  (3169 s, 2026-10-04 07:26:45 UTC)
+------------------------------------------------------------------------------
+   [415/450] Simply prompt Gemini with “I want to take  -> lanzamiento/neutro
+   [416/450] Today we're releasing two generative media -> lanzamiento/neutro
+   [417/450] It can be easy to lose valuable time in yo -> lanzamiento/positivo
+   [418/450] Most of the complex and agentic tasks you  -> lanzamiento/positivo
+   [419/450] As a Customer Engineer in our New York off -> contenido_corporativo/positivo
+   [420/450] Job hunting shouldn’t have to feel like a  -> contenido_corporativo/neutro
+   [421/450] We’re partnering with the UK Government an -> alianza/positivo
+   [422/450] In a new policy paper released today, Kent -> regulatorio/neutro
+   [423/450] Here’s your first peek at Pixel Watch 5. D -> lanzamiento/neutro
+   [424/450] If you read about AI or are using AI tools -> contenido_corporativo/neutro
+   [425/450] Starting today, you can use Nano Banana 2  -> lanzamiento/neutro
+   [426/450] What makes a great technical interview at  -> contenido_corporativo/neutro
+   [427/450] Work smarter, not harder this summer. With -> lanzamiento/positivo
+   [428/450] At Google I/O, we brought together Google  -> contenido_audiovisual/neutro
+   [429/450] Small businesses anywhere in the U.S. can  -> contenido_corporativo/neutro
+   [430/450] Meet Irakli, a recent university graduate  -> demanda_talento/neutro
+   [431/450] “Right now there’s a high demand for skill -> inversion/positivo
+   [432/450] A warm welcome to this year’s class of Goo -> contenido_corporativo/positivo
+   [433/450] For Helen, a software engineer at our Mead -> contenido_corporativo/neutro
+   [434/450] Get an introduction to the fundamentals of -> contenido_corporativo/neutro
+   [435/450] What’s the magic behind the new Pixel 11 f -> lanzamiento/neutro
+   [436/450] New Gemini features tailored to small busi -> lanzamiento/neutro
+   [437/450] Spending 30 minutes each day studying indu -> contenido_corporativo/neutro
+   [438/450] Milestone alert 🎉 More than 1 billion peop -> contenido_corporativo/positivo
+   [439/450] Forgot your password? Lost your phone? Can -> lanzamiento/neutro
+   [440/450] Today Google Cloud and Intel announced a n -> alianza/neutro
+   [441/450] Great teaching is built on the human conne -> lanzamiento/neutro
+   [442/450] Earlier this week, we shared some recent A -> contenido_corporativo/positivo
+   [443/450] As a Director in Google Global Infrastruct -> contenido_corporativo/neutro
+   [444/450] We’re taking on scammers who used AI to st -> noticia/negativo
+   [445/450] Follow along for a day in the life of Ayus -> demanda_talento/neutro
+   [446/450] We’re launching the first iteration of the -> lanzamiento/neutro
+   [447/450] Meet Gemini Robotics 2: the next era of tr -> lanzamiento/positivo
+   [448/450] What does it take to build the future of A -> demanda_talento/neutro
+   [449/450] What makes a great technical interview at  -> contenido_corporativo/neutro
+   [450/450] What does it take to build the future of A -> demanda_talento/neutro
+   == Corrida terminada. Clasificados: 450 ==
+   Quedan 7552 pendientes. Vuelve a correr para continuar la siguiente tanda.
+   [stderr]
+   Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, 
+
+==============================================================================
+FALLO Clasificación de eventos (Groq)  (478 s, 2026-10-04 07:51:55 UTC)
+------------------------------------------------------------------------------
+     [53] alianza → otro_sin_evento  | Las 3 opciones que tiene Abelardo de la Espriella 
+     [54] inversion = inversion  | Abelardo De La Espriella anunció inversión de Peps
+     [55] inversion = inversion  | Amadeus busca liderar los viajes sin fricciones co
+     [56] alianza → otro_sin_evento  | Defensor del Pueblo de Colombia fue designado como
+     [57] inversion → regulatorio  | La nueva versión de Colombia Compra Eficiente tras
+     [58] regulatorio = regulatorio  | ¿Colombia piensa en regular activos digitales? Hay
+     [59] regulatorio = regulatorio  | CNE busca recuperar autonomía presupuestal para 20
+   [stderr]
+   Traceback (most recent call last):
+     File "/home/site/wwwroot/ingestion_silver/clasificacion_eventos/clasificar_eventos.py", line 187, in <module>
+       main()
+       ~~~~^^
+     File "/home/site/wwwroot/ingestion_silver/clasificacion_eventos/clasificar_eventos.py", line 174, in main
+       resumenes = [procesar_contenedor(blob_svc, c, tope, motor) for c in objetivo]
+                    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+     File "/home/site/wwwroot/ingestion_silver/clasificacion_eventos/clasificar_eventos.py", line 122, in procesar_contenedor
+       etiqueta, _ = motor.clasificar(_texto(d))
+                     ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+     File "/home/site/wwwroot/ingestion_silver/clasificacion_eventos/clasificador.py", line 102, in clasificar
+       resp = self.cliente.chat.completions.create(
+           model=self.modelo,
+       ...<2 lines>...
+           max_tokens=15,      # solo necesitamos el nombre de la categoría
+       )
+     File "/home/site/wwwroot/.python_packages/lib/site-packages/groq/resources/chat/completions.py", line 466, in create
+       return self._post(
+              ~~~~~~~~~~^
+           "/openai/v1/chat/completions",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       ...<45 lines>...
+           stream_cls=Stream[ChatCompletionChunk],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       )
+       ^
+     File "/home/site/wwwroot/.python_packages/lib/site-packages/groq/_base_client.py", line 1284, in post
+       return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                              ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     File "/home/site/wwwroot/.python_packages/lib/site-packages/groq/_base_client.py", line 1071, in request
+       raise self._make_status_error_from_response(err.response) from None
+   groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199992, Requested 263. Please try again in 1m50.16s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+==============================================================================
+OK    Gold analítico (indicadores y veredictos)  (89 s, 2026-10-04 07:53:24 UTC)
+------------------------------------------------------------------------------
+       'x-ms-version': 'REDACTED'
+       'X-Content-Type-Options': 'REDACTED'
+       'Date': 'Sun, 04 Oct 2026 07:53:24 GMT'
+   2026-10-04 07:53:24,673 INFO Request URL: 'https://stinteligencia.table.core.windows.net/goldCoberturaKIN(PartitionKey='cobertura',RowKey='KIN-7')'
+   Request method: 'PUT'
+   Request headers:
+       'Content-Type': 'application/json'
+       'Content-Length': '1195'
+       'x-ms-version': 'REDACTED'
+       'DataServiceVersion': 'REDACTED'
+       'Accept': 'application/json'
+       'x-ms-client-request-id': 'ad47f300-bfc8-11f1-94ff-7ae54d7716ab'
+       'x-ms-date': 'REDACTED'
+       'Date': 'Sun, 04 Oct 2026 07:53:24 GMT'
+       'User-Agent': 'azsdk-python-data-tables/12.7.0 Python/3.13.14 (Linux-6.6.150.1-1.azl3-x86_64-with-glibc2.36)'
+       'Authorization': 'REDACTED'
+   A body is sent with the request
+   2026-10-04 07:53:24,681 INFO Response status: 204
+   Response headers:
+       'Cache-Control': 'no-cache'
+       'Content-Length': '0'
+       'ETag': 'W/"datetime'2026-10-04T07%3A53%3A24.6776183Z'"'
+       'Server': 'Windows-Azure-Table/1.0 Microsoft-HTTPAPI/2.0'
+       'x-ms-request-id': 'adbfb75b-c002-003c-0fd5-53ac5b000000'
+       'x-ms-client-request-id': 'ad47f300-bfc8-11f1-94ff-7ae54d7716ab'
+       'x-ms-version': 'REDACTED'
+       'X-Content-Type-Options': 'REDACTED'
+       'Date': 'Sun, 04 Oct 2026 07:53:24 GMT'
+   2026-10-04 07:53:24,681 INFO goldCoberturaKIN: 8 filas escritas.
+   2026-10-04 07:53:24,681 INFO   Cobertura global: 71.1% (27 indicadores alimentables / 11 fuera de alcance)
+   2026-10-04 07:53:24,681 INFO ============================================================
+   2026-10-04 07:53:24,681 INFO GOLD COMPLETADO
+   2026-10-04 07:53:24,681 INFO   competidores           reg=1041  ind=9   ver=7   alr=0  
+   2026-10-04 07:53:24,681 INFO   clientes               reg=2863  ind=10  ver=20  alr=0  
+   2026-10-04 07:53:24,681 INFO   clientes-competencia   reg=1970  ind=14  ver=50  alr=0  
+   2026-10-04 07:53:24,681 INFO   tendencias             reg=381   ind=6   ver=5   alr=0  
+   2026-10-04 07:53:24,681 INFO   proveedores            reg=232   ind=9   ver=3   alr=0  
+   2026-10-04 07:53:24,682 INFO   mercado                reg=109   ind=3   ver=2   alr=0  
+   2026-10-04 07:53:24,682 INFO   regulatorio            reg=84    ind=8   ver=3   alr=0  
+   2026-10-04 07:53:24,682 INFO   capacidades            reg=10    ind=3   ver=1   alr=0  
+
+==============================================================================
+OK    goldContratos  (98 s, 2026-10-04 07:55:02 UTC)
+------------------------------------------------------------------------------
+   Leyendo contratos de COMPETIDORES (Silver)...
+     Competidores: 262 contratos de TI (excluidos 16 por filtro monto/estado, 31 por no ser de TI)
+   Consultando contratos de TAK en SECOP...
+     TAK: consultando SECOP (intento 1/6)...
+     TAK: 14 contratos de TI (excluidos 7 por filtro, 0 por no ser de TI)
+   ============================================================
+   RESUMEN (solo contratos de TI / portafolio TAK)
+   ============================================================
+     Contratos COMPETIDORES: 262  -> $223,423,886,014
+     Contratos TAK:          14  -> $2,772,432,209
+     TAK captura el 1.2% del total
+     (tabla 'goldContratos' vieja borrada, recreando...)
+        Azure libera la tabla; espero 15s (1/12)...
+        Azure libera la tabla; espero 15s (2/12)...
+        Azure libera la tabla; espero 15s (3/12)...
+        Azure libera la tabla; espero 15s (4/12)...
+   Escribiendo 276 contratos en 'goldContratos'...
+   Listo. Tabla 'goldContratos' con 262 de competidores + 14 de TAK. Refresca Power BI.
+
+==============================================================================
+OK    goldLicitaciones  (69 s, 2026-10-04 07:56:12 UTC)
+------------------------------------------------------------------------------
+   Consultando licitaciones vigentes (cierran en los próximos 90 días)...
+     Trajo 3000 licitaciones vigentes (todas las categorías)
+     Licitaciones de TI (portafolio TAK): 21
+     Por categoría:
+       Redes                        6
+       Software                     5
+       Servicios en la nube         2
+       Licenciamiento de software   2
+       Consultoría TI               2
+       Implementación de sistemas   2
+       Soporte de software          1
+       Mantenimiento de sistemas    1
+     Ejemplos (las que cierran primero):
+       cierra 2026-10-05 | Soporte de software  | Renovar el soporte y mantenimiento de la
+       cierra 2026-10-05 | Software             | Adquirir licencias, soporte y actualizac
+       cierra 2026-10-05 | Servicios en la nube | CONTRATAR LOS SERVICIOS ESPECIALIZADOS P
+       cierra 2026-10-06 | Software             | 10-0-7-26 - FORTALECER EL SISTEMA DE GES
+       cierra 2026-10-06 | Licenciamiento de so | ADQUISICIÓN DE EQUIPO DE COMPUTO DE PROC
+   Listo. Tabla 'goldLicitaciones' con 21 licitaciones vigentes. Refresca Power BI.
+
+==============================================================================
+OK    goldMercadoNoticias  (64 s, 2026-10-04 07:57:16 UTC)
+------------------------------------------------------------------------------
+   silver-mercado (pulso): 6 titulares
+      [2026-09-19] [inversion] Nu Colombia proyecta $5 billones en inversiones para te
+      [2026-09-02] [noticia] Oracle llama a las empresas colombianas a acelerar la a
+      [2026-09-28] [inversion] OEA pone los ojos en Barranquilla: líderes de 20 países
+      [2026-09-10] [inversion] Inversión social empresarial cae 16% en Colombia: la te
+      [2026-08-28] [inversion] Presupuesto 2027 en Colombia: recorte a inversión en ci
+      [2026-09-25] [noticia] Manifiesto de Transformación Digital: 7 pilares de Cint
+   silver-proveedores (ecosistema): 6 titulares
+      [2026-09-24] [inversion] Claro anuncia inversiones por 25,5 millones de dólares 
+      [2026-09-30] [alianza] Aunque ya se desmontó el letrero del Movistar Arena has
+      [2026-09-25] [lanzamiento] Claro y Grupo Aval anuncian alianza para lanzar primera
+      [2026-09-25] [lanzamiento] Microsoft presenta el nuevo Copilot para impulsar la pr
+      [2026-09-15] [lanzamiento] Google Cloud presenta soluciones de IA enfocadas en fin
+      [2026-09-25] [alianza] Bogotá y Claro ofrecen formación digital gratuita: así 
+   Total titulares: 12
+     (tabla 'goldMercadoNoticias' vieja borrada, recreando...)
+        Azure libera la tabla; espero 15s (1/12)...
+        Azure libera la tabla; espero 15s (2/12)...
+        Azure libera la tabla; espero 15s (3/12)...
+        Azure libera la tabla; espero 15s (4/12)...
+   Listo. Tabla 'goldMercadoNoticias' con 12 titulares. Refresca Power BI.
+
+==============================================================================
+OK    goldCifrasMercado  (4 s, 2026-10-04 07:57:21 UTC)
+------------------------------------------------------------------------------
+     (no se pudo extraer con IA: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199239, Requested 3957. Please try again in 23m0.672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}})
+     Usando cifras de RESPALDO.
+   === CIFRAS EXTRAÍDAS ===
+      $61 billones  ->  mueve al año la industria del software en Colombia
+         fuente: sin fuente  [sin fecha]
+      85.000  ->  profesionales digitales que le faltan al país
+         fuente: sin fuente  [sin fecha]
+      70%  ->  de los clientes de TAK son del sector público
+         fuente: sin fuente  [sin fecha]
+   Listo. Tabla 'goldCifrasMercado' con 3 cifras (con fuente y fecha). Refresca Power BI.
+
+==============================================================================
+OK    goldRadarTecnologias  (152 s, 2026-10-04 07:59:53 UTC)
+------------------------------------------------------------------------------
+   Contando tecnologías en tendencias globales...
+   Contando tecnologías en contratos SECOP (Colombia)...
+   Descubriendo tecnologías NUEVAS con IA (fuera de la lista)...
+     (descubrimiento IA falló: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199033, Requested 1143. Please try again in 1m16.032s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}})
+   ==========================================================================================
+   RADAR DE TECNOLOGÍAS DEL MERCADO
+   ==========================================================================================
+     tecnología                    global  Col.SECOP       $ Colombia   TAK veredicto
+     --------------------------------------------------------------------------------------
+     Kubernetes / Contenedores      46         0               0   No  EMERGENTE (boom global, evaluar)
+     Serverless                      4         0               0   No  VIGILAR (tendencia global)
+     IA Generativa / LLMs           25         3      44,000,000   Sí  FORTALECER (TAK ya ofrece y hay 
+     Machine Learning                4       154  96,018,276,999   Sí  FORTALECER (TAK ya ofrece y hay 
+     Kafka / Streaming              13       208 125,791,604,012   No  OPORTUNIDAD (se pide en Colombia
+     Ciberseguridad                 44       321 282,487,552,491   Sí  FORTALECER (TAK ya ofrece y hay 
+     Data / Analytics               70        77 169,742,267,445   Sí  FORTALECER (TAK ya ofrece y hay 
+     Cloud / Nube                   68        78 117,988,477,599   Sí  FORTALECER (TAK ya ofrece y hay 
+     DevOps / CI-CD                 18         1     595,440,776   No  OPORTUNIDAD (se pide en Colombia
+     Blockchain                      1         0               0   Sí  EN PORTAFOLIO
+     Bases de datos                 25       126  54,165,367,875   Sí  FORTALECER (TAK ya ofrece y hay 
+     Observabilidad                 12         0               0   No  EMERGENTE (boom global, evaluar)
+     Low-code / No-code              1         0               0   No  Baja señal
+     Robótica / RPA                 12        30  10,315,575,676   No  OPORTUNIDAD (se pide en Colombia
+   Listo. Tabla 'goldRadarTecnologias' con 14 tecnologías. Refresca Power BI.
+
+==============================================================================
+OK    goldTecnologias  (5 s, 2026-10-04 07:59:58 UTC)
+------------------------------------------------------------------------------
+   ====================================================================
+   TECNOLOGÍAS: demanda / contratos TAK / estado
+   ====================================================================
+     IA / Machine Learning      dem= 41  contratosTAK= 0  ofrece=True  -> Sin explotar (demanda Media)
+     Cloud / Nube               dem= 87  contratosTAK= 6  ofrece=True  -> Domina (demanda Alta)
+     Ciberseguridad             dem= 20  contratosTAK= 1  ofrece=True  -> Domina (demanda Baja)
+     Datos / BI                 dem= 24  contratosTAK= 6  ofrece=True  -> Domina (demanda Baja)
+     Infraestructura / DevOps   dem=  8  contratosTAK= 0  ofrece=True  -> Sin explotar (demanda Baja)
+     Blockchain                 dem=  0  contratosTAK= 0  ofrece=True  -> Sin explotar (demanda Baja)
+   Listo. Tabla 'goldTecnologias' con 6 tecnologías. Refresca Power BI.
+
+==============================================================================
+OK    goldComparativoServicios  (64 s, 2026-10-04 08:01:02 UTC)
+------------------------------------------------------------------------------
+   ==============================================================================
+   COMPARATIVO TAK vs COMPETIDORES POR SERVICIO
+   ==============================================================================
+     categoría                                TAK $          Comp $  #TAK  #Comp   TAK%
+     --------------------------------------------------------------------------
+     Implementación de sistemas       52,179,635 48,702,939,194   0.1%  TAK ofrece: Sí
+     Software                                  0 21,765,463,131   0.0%  TAK ofrece: Parcial
+     Servicios en la nube          1,608,502,899 12,926,595,375  11.1%  TAK ofrece: Sí
+     Redes                                     0 14,170,874,582   0.0%  TAK ofrece: No
+     Licenciamiento de software      804,150,991 13,097,740,080   5.8%  TAK ofrece: Sí
+     Bases de datos                   52,999,999 12,195,654,136   0.4%  TAK ofrece: Sí
+     Consultoría TI                  151,720,000 10,434,148,813   1.4%  TAK ofrece: Sí
+     Soporte de software              21,899,999  8,457,536,193   0.3%  TAK ofrece: Sí
+     Mantenimiento de sistemas                 0  7,480,593,938   0.0%  TAK ofrece: Sí
+     Respaldo y recuperación                   0  6,251,021,897   0.0%  TAK ofrece: Parcial
+     Servicios TI                              0  5,470,519,200   0.0%  TAK ofrece: Sí
+     Otros TI                                  0  4,650,864,016   0.0%  TAK ofrece: Parcial
+     Soporte de redes                          0  2,008,385,891   0.0%  TAK ofrece: No
+     Modernización de sistemas                 0  2,003,288,395   0.0%  TAK ofrece: Sí
+     Ciberseguridad                   52,000,000  1,732,387,500   2.9%  TAK ofrece: Sí
+     Hardware                                  0  1,774,232,830   0.0%  TAK ofrece: Sí
+     Software especializado           28,978,686  1,731,719,548   1.6%  TAK ofrece: Parcial
+     Mantenimiento de equipos                  0  1,482,759,831   0.0%  TAK ofrece: Parcial
+     Electrónica                               0  1,430,131,255   0.0%  TAK ofrece: Parcial
+     Datos e internet                          0  1,140,450,000   0.0%  TAK ofrece: Parcial
+   Listo. Tabla 'goldComparativoServicios' con 20 categorías. Refresca Power BI.
+
+==============================================================================
+OK    goldRecomendacionContratos  (2 s, 2026-10-04 08:01:04 UTC)
+------------------------------------------------------------------------------
+   === RECOMENDACIÓN GENERADA ===
+   En el sector público, los competidores prioritarios acumulan $178,907,305,805 en contratos, superando a TAK por un factor de 65, lo que evidencia una brecha crí
+   (Brecha usada: 65x | Competidores: $178,907,305,805 | TAK: $2,772,432,209)
+   Guardado en 'goldRecomendacionContratos'. Refresca Power BI.
+
+==============================================================================
+OK    goldRecomendacionMercado  (2 s, 2026-10-04 08:01:06 UTC)
+------------------------------------------------------------------------------
+   === RECOMENDACIÓN DE MERCADO GENERADA ===
+   La nube presenta la mayor demanda del mercado (87 menciones) y TAK ya domina este sector con 6 contratos públicos, lo que valida su posición competitiva actual.
+   Guardado en 'goldRecomendacionMercado'. Refresca Power BI.
+
+==============================================================================
+OK    goldVentas  (343 s, 2026-10-04 08:06:49 UTC)
+------------------------------------------------------------------------------
+     ERROR Ministerio de Justicia y del Derecho: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199767, Requested 690. Please try again in 3m17.424s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [52] Ministerio de Justic [Captura] [2026-09-25] SEÑAL: Prospecto con actividad relevante.
+     ERROR Ministerio de Transporte: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199762, Requested 731. Please try again in 3m32.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [53] Ministerio de Transp [Captura] [2026-10-03] SEÑAL: Prospecto con actividad relevante.
+     ERROR Ministerio de las Culturas, las Artes y los Saberes: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199757, Requested 684. Please try again in 3m10.512s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [54] Ministerio de las Cu [Captura] [2026-10-04] SEÑAL: Prospecto con actividad relevante.
+     ERROR Nestle de Colombia: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199752, Requested 703. Please try again in 3m16.56s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [55] Nestle de Colombia   [Captura] [2026-10-01] SEÑAL: Prospecto con actividad relevante.
+     ERROR PepsiCo Colombia: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199747, Requested 699. Please try again in 3m12.672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [56] PepsiCo Colombia     [Captura] [2026-09-30] SEÑAL: Prospecto con actividad relevante.
+     ERROR Politécnico Grancolombiano: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199742, Requested 724. Please try again in 3m21.312s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [57] Politécnico Grancolo [Captura] [2026-09-21] SEÑAL: Prospecto con actividad relevante.
+     ERROR Procuraduría General de la Nación: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199737, Requested 695. Please try again in 3m6.624s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [58] Procuraduría General [Captura] [2026-10-04] SEÑAL: Prospecto con actividad relevante.
+     ERROR RCN Televisión: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199732, Requested 710. Please try again in 3m10.944s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [59] RCN Televisión       [Captura] [2026-10-02] SEÑAL: Prospecto con actividad relevante.
+     ERROR Registraduría Nacional del Estado Civil: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199727, Requested 705. Please try again in 3m6.624s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [60] Registraduría Nacion [Captura] [2026-10-03] SEÑAL: Prospecto con actividad relevante.
+     ERROR SENA: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199722, Requested 682. Please try again in 2m54.528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [61] SENA                 [Captura] [2026-09-19] SEÑAL: Prospecto con actividad relevante.
+     ERROR Servicio Geologico Colombiano: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199717, Requested 687. Please try again in 2m54.528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [62] Servicio Geologico C [Captura] [2026-10-03] SEÑAL: Prospecto con actividad relevante.
+     ERROR Superintendencia Financiera de Colombia: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199712, Requested 710. Please try again in 3m2.304s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [63] Superintendencia Fin [Captura] [2026-10-02] SEÑAL: Prospecto con actividad relevante.
+     ERROR Sura: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199707, Requested 711. Please try again in 3m0.576s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [64] Sura                 [Captura] [2026-09-30] SEÑAL: Prospecto con actividad relevante.
+     ERROR Tecnoquimicas: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199702, Requested 696. Please try again in 2m51.936s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [65] Tecnoquimicas        [Captura] [2026-09-11] SEÑAL: Prospecto con actividad relevante.
+     ERROR Telefonica Movistar: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199697, Requested 683. Please try again in 2m44.16s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [66] Telefonica Movistar  [Captura] [2026-10-02] SEÑAL: Prospecto con actividad relevante.
+     ERROR Transmilenio: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199692, Requested 698. Please try again in 2m48.48s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [67] Transmilenio         [Captura] [2026-10-03] SEÑAL: Prospecto con actividad relevante.
+     ERROR Yupi: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m1aafgcyektte3ywp00d4bmy` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199687, Requested 696. Please try again in 2m45.456s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+     [68] Yupi                 [Captura] [2026-08-16] SEÑAL: Prospecto con actividad relevante.
+     (tabla vieja borrada, esperando a que Azure la libere...)
+        Azure libera la tabla; espero 15s (1/12)...
+        Azure libera la tabla; espero 15s (2/12)...
+        Azure libera la tabla; espero 15s (3/12)...
+        Azure libera la tabla; espero 15s (4/12)...
+   Listo. Tabla 'goldVentas' con 68 prospectos (con fecha_senal). Refresca Power BI.
+
+==============================================================================
+OK    goldAlertasCentro  (65 s, 2026-10-04 08:07:54 UTC)
+------------------------------------------------------------------------------
+   Generando centro de alertas...
+     Competencia (contratos recientes): 6
+     Licitaciones (cierran pronto):     10
+     Regulatorio (normativo reciente):  5
+     Clientes (señales):                5
+     TOTAL alertas: 26
+     Ejemplos regulatorio (recientes, sin ruido):
+       [2026-09-08] Rotorr, la corporación que ya convierte ciencia y datos
+       [2026-09-03] "Hay que generar una política pública y un 'incentivo d
+       [2026-08-28] La privacidad entra en la era de la IA con una regulaci
+   Listo. Tabla 'goldAlertasCentro' con 26 alertas. Refresca Power BI.

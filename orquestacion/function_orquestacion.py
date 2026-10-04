@@ -31,7 +31,9 @@ EJECUCIÓN MANUAL:  GET /api/pipeline/ejecutar   (respeta la misma configuració
     forzar=1          arranca aunque haya otra corrida en curso
 CONSULTA:  GET /api/pipeline/estado  -> avance, último resultado y configuración actual.
 
-REGLA DE FALLOS: si un paso falla, se registra y la corrida SIGUE. Una fuente
+REGLA DE FALLOS: si un paso falla, se registra y la corrida SIGUE. Un script que
+termina pero choca con el límite diario de Groq (error 429) también cuenta como
+fallo, porque deja datos de relleno. Una fuente
 caída no debe dejar el tablero sin actualizar. El estado final dice
 "completada" o "completada con errores".
 
@@ -130,7 +132,7 @@ CONTENEDORES_BRONZE = [
 # Scripts: (fase, nombre visible, carpeta, script, argumentos)
 SCRIPTS = [
     ("gemini",  "Clasificación tema/sentimiento (Gemini)", ".", "clasificar_silver_gemini.py", ["--limite", "450"]),
-    ("eventos", "Clasificación de eventos (Groq)", "ingestion_silver/clasificacion_eventos", "clasificar_eventos.py", ["--todos"]),
+    ("eventos", "Clasificación de eventos (Groq)", "ingestion_silver/clasificacion_eventos", "clasificar_eventos.py", ["--todos", "--limite", "150"]),
     ("gold",    "Gold analítico (indicadores y veredictos)", "gold", "calcular_gold.py", []),
     ("tablero", "goldContratos",              ".", "generar_contratos.py",        ["--escribir"]),
     ("tablero", "goldLicitaciones",           ".", "generar_licitaciones.py",     ["--escribir"]),
@@ -293,7 +295,12 @@ def correr_script(carpeta: str, script: str, args: list[str]) -> tuple[bool, str
                        capture_output=True, text=True, encoding="utf-8",
                        errors="replace", timeout=TIMEOUT_SCRIPT)
     salida = (r.stdout or "") + ("\n[stderr]\n" + r.stderr if r.stderr else "")
-    return r.returncode == 0, salida
+    # Un script puede terminar "bien" pero con datos de relleno si Groq agotó su
+    # cupo (error 429). Eso se marca como fallo para que se vea en el estado.
+    limite_ia = ("Rate limit" in salida) or ("rate_limit_exceeded" in salida)
+    if limite_ia:
+        salida = "[LÍMITE DE GROQ ALCANZADO: revisar este paso]\n" + salida
+    return r.returncode == 0 and not limite_ia, salida
 
 
 # ─────────────────────────────────────────────────────────────
