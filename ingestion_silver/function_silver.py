@@ -102,12 +102,16 @@ def _registrar_ejecucion(resumen: dict):
 
 def procesar_tanda(contenedor: str, desde: int = 0, hasta: int = 50,
                    fuente_filtro: str | None = None, forzar: bool = False,
-                   solo_relevantes: bool = False) -> dict:
+                   solo_relevantes: bool = False,
+                   modificados_desde: datetime | None = None) -> dict:
     """
     QUÉ HACE: procesa una tanda de blobs de un contenedor Bronze y escribe los
     registros canónicos en Silver. Devuelve el resumen de la tanda.
     PARA QUÉ SIRVE: es la lógica de la capa, separada del HTTP para que la usen
     tanto el endpoint /silver/procesar como el orquestador del pipeline.
+    MODO INCREMENTAL: con 'modificados_desde', solo se procesan los blobs de Bronze
+    creados o modificados desde esa fecha (lo nuevo desde la última corrida), en vez
+    de releer toda la historia cada día.
     """
     ahora = datetime.now(timezone.utc)
     bs = _blob_service()
@@ -115,7 +119,8 @@ def procesar_tanda(contenedor: str, desde: int = 0, hasta: int = 50,
 
     # --- Listado de blobs de la tanda ---
     try:
-        nombres = [b.name for b in origen.list_blobs()]
+        nombres = [b.name for b in origen.list_blobs()
+                   if modificados_desde is None or (b.last_modified and b.last_modified >= modificados_desde)]
     except Exception as exc:  # noqa: BLE001
         return {"error": f"no se pudo listar '{contenedor}': {exc}"}
     nombres.sort()
@@ -126,6 +131,7 @@ def procesar_tanda(contenedor: str, desde: int = 0, hasta: int = 50,
         "contenedor": contenedor, "fuente_filtro": fuente_filtro,
         "rango": f"{desde}-{hasta}", "total_en_contenedor": len(nombres),
         "en_tanda": len(tanda),
+        "modo": "incremental" if modificados_desde else "completo",
         "escritos": 0, "skip_existente": 0, "skip_duplicado": 0,
         "skip_no_relevante": 0, "skip_fuente": 0, "sin_familia": 0, "errores": 0,
         "detalle_errores": [],

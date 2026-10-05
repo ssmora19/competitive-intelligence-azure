@@ -1,0 +1,59 @@
+============================================================================================
+1. CONTENEDORES (archivos JSON de Bronze y Silver)
+============================================================================================
+contenedor                        archivos         peso  más antiguo  más reciente
+bronze-capacidades                      85      0.90 MB   2026-08-05    2026-10-04
+bronze-clientes                      5,079     13.10 MB   2026-08-08    2026-10-04
+bronze-clientes-competencia          3,290      6.61 MB   2026-08-17    2026-10-04
+bronze-competidores                  3,881     18.55 MB   2026-08-05    2026-10-04
+bronze-mercado                         136      0.46 MB   2026-08-05    2026-10-04
+bronze-proveedores                     353      3.49 MB   2026-08-05    2026-10-04
+bronze-regulatorio                     114      0.59 MB   2026-08-05    2026-10-04
+bronze-tendencias                      580      4.30 MB   2026-08-05    2026-10-04
+silver-capacidades                      50      0.23 MB   2026-08-23    2026-10-04
+silver-clientes                      3,397      9.16 MB   2026-08-23    2026-10-04
+silver-clientes-competencia          2,922      7.24 MB   2026-08-23    2026-10-04
+silver-competidores                  3,216      7.02 MB   2026-08-23    2026-10-04
+silver-mercado                         110      0.22 MB   2026-08-23    2026-10-04
+silver-proveedores                     243      0.44 MB   2026-08-23    2026-10-04
+silver-regulatorio                      84      0.17 MB   2026-08-23    2026-10-04
+silver-tendencias                      444      0.77 MB   2026-08-23    2026-10-04
+TOTAL                               23,984     73.23 MB
+
+============================================================================================
+2. TABLAS (control, registros y tablas Gold del tablero)
+============================================================================================
+tabla                                filas  peso aprox.
+controlIngesta                         334      0.83 MB
+controlSilver                            0      0.00 MB
+executionLogs                        2,398      2.28 MB
+executionLogsGold                       60      0.02 MB
+executionLogsSilver                    150      0.05 MB
+goldAlertas                              0      0.00 MB
+goldAlertasCentro                       43      0.03 MB
+goldCifrasMercado                        3      0.00 MB
+goldCoberturaKIN                         8      0.00 MB
+goldComparativoServicios                20      0.00 MB
+goldContratos                          239      0.24 MB
+goldIndicadores                         62      0.03 MB
+goldLicitaciones                        22      0.02 MB
+goldMercadoNoticias                     12      0.01 MB
+goldRadarTecnologias                    20      0.02 MB
+goldRecomendacionContratos               1      0.00 MB
+goldRecomendacionMercado                 1      0.00 MB
+goldResumenEjecutivo                     1      0.00 MB
+goldTecnologias                          6      0.00 MB
+goldVentas                              68      0.07 MB
+goldVeredictos                          91      0.11 MB
+pipelineEstado                           1      0.00 MB
+pipelineLog                            143      0.24 MB
+TOTAL                                3,683      3.94 MB
+
+============================================================================================
+3. CORRIDAS DEL ORQUESTADOR (minutos de trabajo efectivo = lo que cobra Functions)
+============================================================================================
+corrida             pasos  bronze  silver  scripts  min. efectivos  inicio → fin
+20261004-021327        11       0       0       11            51.3  2026-10-04 02:20 → 03:05
+20261004-042020        11       0       0       11            14.2  2026-10-04 04:22 → 04:34
+20261004-044249       120      35      71       14           125.5  2026-10-04 04:49 → 08:07
+20261004-172209         1       0       0        1             7.8  2026-10-04 17:30 → 17:30

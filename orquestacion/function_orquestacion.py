@@ -28,6 +28,8 @@ EJECUCIÓN MANUAL:  GET /api/pipeline/ejecutar   (respeta la misma configuració
     apify=1 / 0       fuerza incluir o no Apify
     firecrawl=1 / 0   fuerza incluir o no Firecrawl
     fases=a,b         solo esas fases: bronze, silver, gemini, eventos, gold, tablero
+    silver_completo=1 Silver reprocesa TODA la historia (por defecto solo lo nuevo
+                      desde la última corrida de Silver sin errores)
     forzar=1          arranca aunque haya otra corrida en curso
 CONSULTA:  GET /api/pipeline/estado  -> avance, último resultado y configuración actual.
 
@@ -65,6 +67,7 @@ CONN_DATOS = "AZURE_STORAGE_CONNECTION_STRING"
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TAM_TANDA_SILVER = 200
+MARGEN_SILVER_DIAS = 1                      # Silver incremental: relee 1 día extra por seguridad
 TIMEOUT_SCRIPT = 100 * 60                   # 100 min por script (Gemini es el más largo)
 HORAS_CORRIDA_COLGADA = 12                  # pasado esto, una corrida "en_curso" se da por muerta
 UTC_COLOMBIA = -5                           # Colombia no tiene horario de verano
@@ -145,6 +148,9 @@ SCRIPTS = [
     ("tablero", "goldRecomendacionMercado",   ".", "recomendacion_mercado.py",    []),
     ("tablero", "goldVentas",                 ".", "generar_ventas.py",           ["--escribir"]),
     ("tablero", "goldAlertasCentro",          ".", "generar_alertas.py",          ["--escribir"]),
+    # Retención: borra bitácoras con más de 180 días (los archivos viejos de Bronze y
+    # Silver los borra la política de ciclo de vida de la cuenta de almacenamiento).
+    ("tablero", "Depuración de registros antiguos", ".", "depurar_registros.py", ["--escribir"]),
 ]
 
 FASES = ["bronze", "silver", "gemini", "eventos", "gold", "tablero"]
@@ -264,15 +270,17 @@ def correr_bronze(dom: str, fuente: str) -> tuple[bool, str]:
     return True, json.dumps(res, ensure_ascii=False, default=str)[:3000]
 
 
-def correr_silver_tanda(c_idx: int, desde: int) -> tuple[bool, str, int | None, int]:
+def correr_silver_tanda(c_idx: int, desde: int,
+                        modificados_desde: datetime | None = None) -> tuple[bool, str, int | None, int]:
     """
-    QUÉ HACE: procesa UNA tanda de un contenedor.
+    QUÉ HACE: procesa UNA tanda de un contenedor (solo lo nuevo si hay 'modificados_desde').
     Devuelve (ok, detalle, siguiente_contenedor, siguiente_desde); siguiente_contenedor
     es None cuando ya no quedan contenedores.
     """
     from ingestion_silver.function_silver import procesar_tanda
     cont = CONTENEDORES_BRONZE[c_idx]
-    r = procesar_tanda(cont, desde=desde, hasta=desde + TAM_TANDA_SILVER)
+    r = procesar_tanda(cont, desde=desde, hasta=desde + TAM_TANDA_SILVER,
+                       modificados_desde=modificados_desde)
     ok = "error" not in r and r.get("errores", 0) == 0
     detalle = json.dumps({k: v for k, v in r.items() if k != "detalle_errores"}, ensure_ascii=False)
     total = r.get("total_en_contenedor", 0)
@@ -308,7 +316,7 @@ def correr_script(carpeta: str, script: str, args: list[str]) -> tuple[bool, str
 # ─────────────────────────────────────────────────────────────
 
 def iniciar_corrida(apify: bool, firecrawl: bool, fases: list[str], forzar: bool,
-                    origen: str) -> tuple[dict, str | None]:
+                    origen: str, silver_completo: bool = False) -> tuple[dict, str | None]:
     """QUÉ HACE: crea la corrida y devuelve (respuesta, mensaje_primer_paso)."""
     est = leer_estado()
     if est and est.get("estado") == "en_curso" and not forzar:
@@ -330,7 +338,8 @@ def iniciar_corrida(apify: bool, firecrawl: bool, fases: list[str], forzar: bool
                    fases=",".join(fases), apify=apify, firecrawl=firecrawl,
                    total_pasos=len(pasos), paso_actual=0, nombre_paso=pasos[0]["nombre"],
                    pasos_con_error=0, errores="", **extra)
-    msg = json.dumps({"corrida": corrida, "i": 0, "apify": apify, "firecrawl": firecrawl, "fases": fases})
+    msg = json.dumps({"corrida": corrida, "i": 0, "apify": apify, "firecrawl": firecrawl, "fases": fases,
+                      "silver_completo": silver_completo})
     return ({"corrida": corrida, "estado": "en_curso", "total_pasos": len(pasos), "fases": fases,
              "incluye_apify": apify, "incluye_firecrawl": firecrawl,
              "consultar": "/api/pipeline/estado"}, msg)
@@ -359,6 +368,7 @@ def pipeline_ejecutar(req: func.HttpRequest, siguiente: func.Out[str]) -> func.H
         fases=_fases_param(req.params.get("fases")),
         forzar=req.params.get("forzar", "0") == "1",
         origen="manual",
+        silver_completo=req.params.get("silver_completo", "0") == "1",
     )
     if msg:
         siguiente.set(msg)
@@ -416,10 +426,32 @@ def pipeline_paso(mensaje: func.QueueMessage, siguiente: func.Out[str]) -> None:
             ok, detalle = correr_bronze(paso["dom"], paso["fuente"])
         elif paso["tipo"] == "silver":
             c_idx, desde = m.get("c", 0), m.get("desde", 0)
-            nombre = f"Silver {CONTENEDORES_BRONZE[c_idx]} {desde}-{desde + TAM_TANDA_SILVER}"
-            ok, detalle, sig_c, sig_desde = correr_silver_tanda(c_idx, desde)
+            # SILVER INCREMENTAL: al empezar la fase se fija desde qué fecha procesar
+            # (última corrida de Silver sin errores, menos un margen). Sin fecha previa,
+            # o si se pidió silver_completo=1, se procesa toda la historia.
+            if "sil_desde" not in m:
+                ultima = est.get("ultima_silver") or ""
+                if ultima and not m.get("silver_completo"):
+                    try:
+                        f0 = datetime.strptime(ultima, "%Y-%m-%d %H:%M:%S UTC")
+                        m["sil_desde"] = (f0 - timedelta(days=MARGEN_SILVER_DIAS)).strftime("%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        m["sil_desde"] = ""
+                else:
+                    m["sil_desde"] = ""
+                m["sil_err"] = 0
+            modificados_desde = (datetime.strptime(m["sil_desde"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                                 if m["sil_desde"] else None)
+            modo = f"desde {m['sil_desde'][:10]}" if m["sil_desde"] else "completo"
+            nombre = f"Silver {CONTENEDORES_BRONZE[c_idx]} {desde}-{desde + TAM_TANDA_SILVER} ({modo})"
+            ok, detalle, sig_c, sig_desde = correr_silver_tanda(c_idx, desde, modificados_desde)
+            if not ok:
+                m["sil_err"] = m.get("sil_err", 0) + 1
             if sig_c is not None:           # quedan tandas: el siguiente mensaje sigue en Silver
                 sig = {**m, "c": sig_c, "desde": sig_desde}
+            elif m.get("sil_err", 0) == 0:
+                # Silver terminó sin errores: la próxima corrida solo procesará lo nuevo
+                guardar_estado(ultima_silver=est.get("inicio") or _ahora())
         else:
             ok, detalle = correr_script(paso["carpeta"], paso["script"], paso["args"])
     except Exception as ex:                 # noqa: BLE001
@@ -437,7 +469,7 @@ def pipeline_paso(mensaje: func.QueueMessage, siguiente: func.Out[str]) -> None:
         errores = (errores + f"{nombre}; ")[-2000:]
 
     if sig is None:
-        sig = {k: v for k, v in m.items() if k not in ("c", "desde")}
+        sig = {k: v for k, v in m.items() if k not in ("c", "desde", "sil_desde", "sil_err")}
         sig["i"] = i + 1
 
     if sig["i"] < len(pasos):
