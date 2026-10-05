@@ -169,6 +169,15 @@ def main():
     hechos = cargar_progreso()
     print(f"Ya clasificados en corridas previas: {len(hechos)}")
 
+    def _marcar(cc, nombre, valor):
+        """Deja la marca 'gemini' en los metadatos del blob (no cambia su contenido)."""
+        if args.dry_run:
+            return   # el simulacro no escribe nada
+        try:
+            cc.get_blob_client(nombre).set_blob_metadata({"gemini": valor})
+        except Exception:
+            pass
+
     def descargar_blob(cc, nombre, reintentos=3):
         """Descarga un blob con reintentos; devuelve el dict o None si falla."""
         for intento in range(reintentos):
@@ -183,31 +192,48 @@ def main():
         return None
 
     # --- FASE 1: inventario de relevantes pendientes ---
+    # INCREMENTAL: cada blob queda marcado en sus METADATOS ("gemini" = "si" si ya se
+    # clasificó, "omitido" si no es relevante). El listado trae esa marca sin descargar
+    # el archivo, así que solo se abren los blobs nuevos o modificados por Silver. Además,
+    # el inventario se detiene al reunir el tope del día (no hace falta contar todo).
     pendientes = []   # (contenedor, blob_name)
     total_rel = 0
+    saltados_marca = 0
     for cont in conts:
+        if not args.dry_run and len(pendientes) >= args.limite:
+            break
         cc = bs.get_container_client(cont)
         try:
-            blobs = list(cc.list_blobs())
+            blobs = list(cc.list_blobs(include=["metadata"]))
         except Exception as e:
             print(f"  (no se pudo listar {cont}: {str(e)[:50]})")
             continue
         print(f"  inventariando {cont} ({len(blobs)} blobs)...")
         for b in blobs:
+            if not args.dry_run and len(pendientes) >= args.limite:
+                print(f"    (tope de {args.limite} alcanzado: el resto queda para la próxima corrida)")
+                break
+            if (b.metadata or {}).get("gemini") in ("si", "omitido"):
+                saltados_marca += 1
+                continue   # marcado: ni se descarga
             bid = f"{cont}/{b.name}"
             if bid in hechos:
+                _marcar(cc, b.name, "si")
                 continue   # ya clasificado: no hace falta descargarlo
             reg = descargar_blob(cc, b.name)
             if reg is None:
                 continue
             if reg.get("clasificado_por") == "gemini":
+                _marcar(cc, b.name, "si")
                 continue   # ya clasificado (marca dentro del blob)
             if not reg.get("relevancia", {}).get("pasa_umbral", False):
+                _marcar(cc, b.name, "omitido")
                 continue   # ruido: no gastar Gemini
             total_rel += 1
             pendientes.append((cont, b.name))
 
-    print(f"Registros relevantes pendientes por clasificar: {len(pendientes)}")
+    print(f"Saltados sin descargar (ya marcados): {saltados_marca}")
+    print(f"Registros relevantes pendientes por clasificar en esta corrida: {len(pendientes)}")
 
     if args.dry_run:
         print("\n(dry-run) No se llamo a Gemini. Solo inventario.")
@@ -254,7 +280,8 @@ def main():
         reg["clasificado_por"] = "gemini"
 
         try:
-            bc.upload_blob(json.dumps(reg, ensure_ascii=False).encode("utf-8"), overwrite=True)
+            bc.upload_blob(json.dumps(reg, ensure_ascii=False).encode("utf-8"), overwrite=True,
+                           metadata={"gemini": "si"})
         except Exception as e:
             print(f"      (no se pudo guardar {blob_name}: {str(e)[:40]})")
             continue
