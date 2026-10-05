@@ -4,12 +4,12 @@ clasificar_silver_gemini.py
 ===========================
 QUE HACE: recorre los registros de la capa Silver, toma SOLO los relevantes
 (los que pasaron el filtro de relevancia por reglas), los envia a Gemini para
-que reclasifique tema y sentimiento, y guarda el resultado de vuelta en cada
+que reclasifique el tema, y guarda el resultado de vuelta en cada
 registro Silver. Trabaja en TANDAS respetando el limite diario de Gemini y es
 REANUDABLE: lleva un registro de lo ya procesado para no repetir ni gastar cuota.
 
 PARA QUE SIRVE: prepara la capa Silver para alimentar Gold. Aplica la decision
-del experimento: Gemini para tema y sentimiento (mejor en lenguaje/idiomas),
+del experimento: Gemini para el tema (mejor en lenguaje/idiomas),
 reglas para relevancia (mejor en criterio de negocio). Filtrar por relevancia
 ANTES de llamar a Gemini ahorra la mayor parte de la cuota (no se gasta en ruido).
 
@@ -57,7 +57,6 @@ if not os.access(".", os.W_OK):
 TEMAS = ["lanzamiento", "inversion", "alianza", "regulatorio", "expansion",
          "contratacion_publica", "demanda_talento", "contenido_corporativo",
          "contenido_audiovisual", "actividad_tecnica", "noticia", "referencia_web"]
-SENTIMIENTOS = ["positivo", "neutro", "negativo"]
 
 PROMPT = """Eres un analista de inteligencia competitiva para una empresa de TI en Colombia.
 Clasifica el siguiente contenido devolviendo SOLO un JSON valido, sin texto adicional.
@@ -65,16 +64,14 @@ Clasifica el siguiente contenido devolviendo SOLO un JSON valido, sin texto adic
 Titulo: {titulo}
 Descripcion: {descripcion}
 
-Devuelve JSON con exactamente dos claves:
+Devuelve JSON con exactamente una clave:
 
 - "tema": uno de {temas}
 
-- "sentimiento": uno de {sentimientos}. Evalua el TONO del texto (no el impacto de negocio):
-  * "positivo": celebra un logro, premio, exito, lanzamiento entusiasta o buen resultado.
-  * "negativo": informa un problema, crisis, perdida, demanda, sancion, despido o tragedia.
-  * "neutro": informa sin carga emocional clara; incluye la mayoria de comunicados corporativos y anuncios factuales. Ante la duda entre neutro y positivo, elige "neutro" salvo que haya una celebracion o logro explicito.
-
 Responde SOLO el JSON."""
+# NOTA: el sentimiento se retiró del sistema (oct-2026). Al medirlo en las noticias de
+# competidores, el 98,5 % era neutro o positivo y las pocas negativas no correspondían
+# a hechos adversos de los competidores: no aportaba señal para ninguna decisión.
 
 
 def get_api_key():
@@ -110,15 +107,14 @@ def elegir_modelo(client):
 
 def clasificar(client, modelo, titulo, descripcion):
     prompt = PROMPT.format(titulo=(titulo or "")[:300], descripcion=(descripcion or "")[:800],
-                           temas=TEMAS, sentimientos=SENTIMIENTOS)
+                           temas=TEMAS)
     for intento in range(MAX_REINTENTOS):
         try:
             resp = client.models.generate_content(
                 model=modelo, contents=prompt,
                 config=types.GenerateContentConfig(temperature=0, response_mime_type="application/json"))
             data = json.loads(resp.text)
-            return (str(data.get("tema", "")).strip().lower(),
-                    str(data.get("sentimiento", "")).strip().lower())
+            return str(data.get("tema", "")).strip().lower()
         except genai_errors.APIError as e:
             code = getattr(e, "code", None)
             if code in (429, 503) and intento < MAX_REINTENTOS - 1:
@@ -128,13 +124,13 @@ def clasificar(client, modelo, titulo, descripcion):
                 continue
             # 429 al final = cuota agotada: señal para parar la corrida
             if code == 429:
-                return "__CUOTA__", "__CUOTA__"
+                return "__CUOTA__"
             print(f"      (error {code})")
-            return None, None
+            return None
         except Exception as e:
             print(f"      (error: {str(e)[:50]})")
-            return None, None
-    return None, None
+            return None
+    return None
 
 
 def cargar_progreso():
@@ -242,8 +238,7 @@ def main():
         except Exception:
             continue
 
-        g_tema, g_sent = clasificar(client, modelo,
-                                    reg.get("titulo"), reg.get("descripcion"))
+        g_tema = clasificar(client, modelo, reg.get("titulo"), reg.get("descripcion"))
 
         if g_tema == "__CUOTA__":
             print(f"\n*** CUOTA DIARIA AGOTADA en el registro {i}. ***")
@@ -256,11 +251,6 @@ def main():
         reg.setdefault("clasificacion", {})
         reg["clasificacion"]["tipo_senal"] = g_tema
         reg["clasificacion"]["metodo"] = "gemini"
-        reg.setdefault("sentimiento", {})
-        if reg["sentimiento"] is None:
-            reg["sentimiento"] = {}
-        reg["sentimiento"]["etiqueta"] = g_sent
-        reg["sentimiento"]["metodo"] = "gemini"
         reg["clasificado_por"] = "gemini"
 
         try:
@@ -271,7 +261,7 @@ def main():
 
         anexar_progreso(f"{cont}/{blob_name}")
         procesados += 1
-        print(f"[{i}/{len(tanda)}] {(reg.get('titulo') or '')[:42]:42} -> {g_tema}/{g_sent}")
+        print(f"[{i}/{len(tanda)}] {(reg.get('titulo') or '')[:42]:42} -> {g_tema}")
         time.sleep(PAUSA_SEG)
 
     print(f"\n== Corrida terminada. Clasificados: {procesados} ==")

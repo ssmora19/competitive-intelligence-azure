@@ -156,7 +156,7 @@ def procesar(blob: dict, ahora: datetime | None = None) -> ResultadoSilver:
         canonico["relevancia"] = enriquecimiento.puntuar_relevancia(canonico)
 
         # --- 9. Sentimiento (opcional) ---
-        canonico["sentimiento"] = enriquecimiento.estimar_sentimiento(canonico)
+        # Sentimiento retirado (oct-2026): no aportaba señal para ninguna decisión
 
         return ResultadoSilver("ok", canonico=canonico, familia=familia)
 
