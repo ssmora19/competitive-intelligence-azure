@@ -33,6 +33,20 @@ EJECUCIÓN MANUAL:  GET /api/pipeline/ejecutar   (respeta la misma configuració
     forzar=1          arranca aunque haya otra corrida en curso
 CONSULTA:  GET /api/pipeline/estado  -> avance, último resultado y configuración actual.
 
+PASOS CORTOS: Gemini va en 6 tramos de 75 noticias y la clasificación de eventos
+en 3 tramos de 50. Si Azure recicla el servidor a mitad de un paso, se pierde a lo
+sumo un tramo corto (unos minutos), no una hora de trabajo. Si un tramo informa
+que no queda nada pendiente o que se agotó la cuota del día, los tramos restantes
+de esa fase se saltan (no tiene sentido llamar a la IA otra vez).
+
+VIGILANTE AUTOMÁTICO: el reloj que revisa cada 15 minutos también comprueba que la
+corrida en curso siga avanzando. Si lleva más de MINUTOS_SIN_AVANCE sin avanzar
+(el servidor se reinició y el paso se perdió), la REANUDA desde el paso donde quedó.
+Si el mismo paso se pierde MAX_REANUDAR_PASO veces, lo marca como fallido y sigue
+con el siguiente, para que el tablero se actualice igual. Tras
+MAX_REANUDACIONES_CORRIDA reanudaciones en una misma corrida la da por
+"interrumpida" (algo más grave está pasando y hay que revisarlo).
+
 REGLA DE FALLOS: si un paso falla, se registra y la corrida SIGUE. Un script que
 termina pero choca con el límite diario de Groq (error 429) también cuenta como
 fallo, porque deja datos de relleno. Una fuente
@@ -70,6 +84,15 @@ TAM_TANDA_SILVER = 200
 MARGEN_SILVER_DIAS = 1                      # Silver incremental: relee 1 día extra por seguridad
 TIMEOUT_SCRIPT = 100 * 60                   # 100 min por script (Gemini es el más largo)
 HORAS_CORRIDA_COLGADA = 12                  # pasado esto, una corrida "en_curso" se da por muerta
+MINUTOS_SIN_AVANCE = 130                    # > functionTimeout (120 min): ningún paso vivo dura tanto
+MAX_REANUDAR_PASO = 3                       # veces que se reintenta un mismo paso perdido
+MAX_REANUDACIONES_CORRIDA = 8               # reanudaciones totales antes de "interrumpida"
+TRAMOS_GEMINI, TAM_TRAMO_GEMINI = 6, 75     # 6 x 75 = 450 noticias/día (cuota gratis de Gemini)
+TRAMOS_EVENTOS, TAM_TRAMO_EVENTOS = 3, 50   # 3 x 50 = 150 eventos/día (cupo de Groq)
+# Textos que, si aparecen en la salida de un tramo, hacen saltar los tramos restantes
+# de esa fase: no queda nada por hacer o la IA ya no recibe más llamadas hoy.
+FIN_DE_GRUPO = ("Nada pendiente", "CUOTA DIARIA AGOTADA", "límite alcanzado",
+                "LÍMITE DE GROQ ALCANZADO", "TOTAL procesados=0 ")
 UTC_COLOMBIA = -5                           # Colombia no tiene horario de verano
 
 # ─────────────────────────────────────────────────────────────
@@ -134,8 +157,13 @@ CONTENEDORES_BRONZE = [
 
 # Scripts: (fase, nombre visible, carpeta, script, argumentos)
 SCRIPTS = [
-    ("gemini",  "Clasificación tema/sentimiento (Gemini)", ".", "clasificar_silver_gemini.py", ["--limite", "450"]),
-    ("eventos", "Clasificación de eventos (Groq)", "ingestion_silver/clasificacion_eventos", "clasificar_eventos.py", ["--todos", "--limite", "150"]),
+    *[("gemini", f"Clasificación de tema (Gemini) tramo {k}/{TRAMOS_GEMINI}", ".",
+       "clasificar_silver_gemini.py", ["--limite", str(TAM_TRAMO_GEMINI)])
+      for k in range(1, TRAMOS_GEMINI + 1)],
+    *[("eventos", f"Clasificación de eventos (Groq) tramo {k}/{TRAMOS_EVENTOS}",
+       "ingestion_silver/clasificacion_eventos", "clasificar_eventos.py",
+       ["--todos", "--limite", str(TAM_TRAMO_EVENTOS)])
+      for k in range(1, TRAMOS_EVENTOS + 1)],
     ("gold",    "Gold analítico (indicadores y veredictos)", "gold", "calcular_gold.py", []),
     ("tablero", "goldContratos",              ".", "generar_contratos.py",        ["--escribir"]),
     ("tablero", "goldLicitaciones",           ".", "generar_licitaciones.py",     ["--escribir"]),
@@ -211,8 +239,19 @@ def armar_pasos(apify: bool, firecrawl: bool, fases: list[str]) -> list[dict]:
         pasos.append({"tipo": "silver", "nombre": "Silver (8 contenedores)"})
     for fase, nombre, carpeta, script, args in SCRIPTS:
         if fase in fases:
-            pasos.append({"tipo": "script", "nombre": nombre, "carpeta": carpeta, "script": script, "args": args})
+            grupo = fase if fase in ("gemini", "eventos") else None
+            pasos.append({"tipo": "script", "nombre": nombre, "carpeta": carpeta,
+                          "script": script, "args": args, "grupo": grupo})
     return pasos
+
+
+def fin_de_grupo(pasos: list[dict], i: int) -> int:
+    """QUÉ HACE: índice del primer paso que ya NO pertenece al grupo de tramos del paso i."""
+    g = pasos[i].get("grupo")
+    j = i + 1
+    while g and j < len(pasos) and pasos[j].get("grupo") == g:
+        j += 1
+    return j
 
 
 # ─────────────────────────────────────────────────────────────
@@ -241,6 +280,11 @@ def guardar_estado(**campos) -> None:
     from azure.data.tables import UpdateMode
     _tabla("pipelineEstado").upsert_entity(
         {"PartitionKey": "pipeline", "RowKey": "actual", **campos}, mode=UpdateMode.MERGE)
+
+
+def clave_msg(m: dict) -> str:
+    """Identifica un mensaje de forma única: reanudación | paso | tanda de Silver."""
+    return f"{m.get('r', 0)}|{m['i']}|{m.get('c', 0)}|{m.get('desde', 0)}"
 
 
 def registrar_paso(corrida: str, i: int, nombre: str, ok: bool, detalle: str, segundos: float) -> None:
@@ -337,9 +381,12 @@ def iniciar_corrida(apify: bool, firecrawl: bool, fases: list[str], forzar: bool
     guardar_estado(corrida=corrida, estado="en_curso", origen=origen, inicio=_ahora(), fin="",
                    fases=",".join(fases), apify=apify, firecrawl=firecrawl,
                    total_pasos=len(pasos), paso_actual=0, nombre_paso=pasos[0]["nombre"],
-                   pasos_con_error=0, errores="", **extra)
-    msg = json.dumps({"corrida": corrida, "i": 0, "apify": apify, "firecrawl": firecrawl, "fases": fases,
-                      "silver_completo": silver_completo})
+                   pasos_con_error=0, errores="", reanudaciones=0, reanudaciones_paso=0,
+                   ultimo_avance=_ahora(), **extra)
+    m0 = {"corrida": corrida, "i": 0, "r": 0, "apify": apify, "firecrawl": firecrawl, "fases": fases,
+          "silver_completo": silver_completo}
+    msg = json.dumps(m0)
+    guardar_estado(msg_actual=msg, clave_actual=clave_msg(m0))
     return ({"corrida": corrida, "estado": "en_curso", "total_pasos": len(pasos), "fases": fases,
              "incluye_apify": apify, "incluye_firecrawl": firecrawl,
              "consultar": "/api/pipeline/estado"}, msg)
@@ -376,13 +423,91 @@ def pipeline_ejecutar(req: func.HttpRequest, siguiente: func.Out[str]) -> func.H
                              status_code=202 if msg else 409, mimetype="application/json")
 
 
-@bp.timer_trigger(schedule="0 0 * * * *", arg_name="timer", run_on_startup=False)
+def _minutos_desde(texto: str | None) -> float | None:
+    try:
+        t = datetime.strptime(texto, "%Y-%m-%d %H:%M:%S UTC").replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    return (datetime.now(timezone.utc) - t).total_seconds() / 60
+
+
+def vigilar_corrida(est: dict | None) -> str | None:
+    """
+    QUÉ HACE: si la corrida en curso lleva más de MINUTOS_SIN_AVANCE sin avanzar,
+    devuelve el mensaje para reanudarla (o None si todo está bien).
+    POR QUÉ: Azure puede reciclar el servidor a mitad de un paso; ese paso se pierde
+    y, sin esto, la corrida quedaría "en_curso" para siempre y el tablero sin actualizar.
+    """
+    if not est or est.get("estado") != "en_curso" or not est.get("msg_actual"):
+        return None
+    minutos = _minutos_desde(est.get("ultimo_avance") or est.get("inicio"))
+    if minutos is None or minutos < MINUTOS_SIN_AVANCE:
+        return None
+
+    corrida = est.get("corrida")
+    total = int(est.get("reanudaciones", 0) or 0) + 1
+    if total > MAX_REANUDACIONES_CORRIDA:
+        guardar_estado(estado="interrumpida", fin=_ahora(), clave_actual="",
+                       errores=((est.get("errores") or "") + "Corrida interrumpida: se perdió el "
+                                f"servidor {total - 1} veces; revisar Application Insights. ")[-2000:])
+        registrar_paso(corrida, 999999, "Vigilante: corrida interrumpida", False,
+                       f"Se reanudó {total - 1} veces sin poder terminar.", 0)
+        log.error("Vigilante: corrida %s interrumpida tras %s reanudaciones.", corrida, total - 1)
+        return None
+
+    m = json.loads(est["msg_actual"])
+    pasos = armar_pasos(m.get("apify", False), m.get("firecrawl", True), m.get("fases", FASES))
+    i = m["i"]
+    del_paso = int(est.get("reanudaciones_paso", 0) or 0) + 1
+    con_error = int(est.get("pasos_con_error", 0) or 0)
+    errores = est.get("errores", "") or ""
+    nombre = est.get("nombre_paso") or (pasos[i]["nombre"] if i < len(pasos) else "")
+
+    if del_paso > MAX_REANUDAR_PASO:
+        # El mismo paso se perdió varias veces: se marca fallido y se sigue con el próximo.
+        con_error += 1
+        errores = (errores + f"{nombre} (saltado: se perdió {del_paso - 1} veces); ")[-2000:]
+        registrar_paso(corrida, i * 1000 + 999, f"{nombre} [saltado por el vigilante]", False,
+                       f"El paso se perdió {del_paso - 1} veces; se continúa con el siguiente.", 0)
+        m = {k: v for k, v in m.items() if k not in ("c", "desde", "sil_desde", "sil_err")}
+        m["i"] = i + 1
+        del_paso = 0
+        if m["i"] >= len(pasos):
+            guardar_estado(paso_actual=len(pasos), nombre_paso="", pasos_con_error=con_error,
+                           errores=errores, fin=_ahora(), clave_actual="", reanudaciones=total,
+                           estado="completada con errores")
+            return None
+        nombre = pasos[m["i"]]["nombre"]
+    else:
+        registrar_paso(corrida, i * 1000 + 990 + del_paso, f"Vigilante: reanudando {nombre}", False,
+                       f"Sin avance hace {minutos:.0f} min; intento {del_paso} de {MAX_REANUDAR_PASO}.", 0)
+
+    m["r"] = total                          # los mensajes viejos de esta corrida quedan sin efecto
+    msg = json.dumps(m)
+    guardar_estado(reanudaciones=total, reanudaciones_paso=del_paso, paso_actual=m["i"],
+                   nombre_paso=nombre, pasos_con_error=con_error, errores=errores,
+                   ultimo_avance=_ahora(), msg_actual=msg, clave_actual=clave_msg(m))
+    log.warning("Vigilante: corrida %s reanudada en el paso %s (%s).", corrida, m["i"] + 1, nombre)
+    return msg
+
+
+@bp.timer_trigger(schedule="0 */15 * * * *", arg_name="timer", run_on_startup=False)
 @bp.queue_output(arg_name="siguiente", queue_name=COLA, connection=CONN_COLA)
 def pipeline_programado(timer: func.TimerRequest, siguiente: func.Out[str]) -> None:
     """
-    Revisa cada hora en punto si toca correr, según PIPELINE_HORA y PIPELINE_CADA_DIAS.
+    Cada 15 minutos:
+      1) VIGILANTE: si hay una corrida en curso que dejó de avanzar, la reanuda.
+      2) Revisa si toca arrancar la corrida del día (PIPELINE_HORA, PIPELINE_CADA_DIAS).
     (Revisar no cuesta nada; solo arranca la corrida a la hora configurada.)
     """
+    try:
+        msg = vigilar_corrida(leer_estado())
+    except Exception as ex:                 # noqa: BLE001
+        log.warning("Vigilante: no se pudo revisar la corrida: %s", ex)
+        msg = None
+    if msg:
+        siguiente.set(msg)
+        return
     cfg = leer_config()
     if cfg["cada_dias"] == 0:
         return                                          # pausado por configuración
@@ -412,6 +537,13 @@ def pipeline_paso(mensaje: func.QueueMessage, siguiente: func.Out[str]) -> None:
     if est.get("corrida") != corrida or est.get("estado") != "en_curso":
         log.info("Mensaje de una corrida que ya no está activa (%s); se descarta.", corrida)
         return
+    # Solo se ejecuta el mensaje que el estado espera. Así un mensaje viejo (reintento
+    # de Azure después de una reanudación del vigilante) no duplica pasos.
+    if est.get("clave_actual") and est["clave_actual"] != clave_msg(m):
+        log.info("Mensaje %s no es el esperado (%s); se descarta.", clave_msg(m), est["clave_actual"])
+        return
+    # Latido: el paso empezó. El vigilante mide el tiempo sin avance desde aquí.
+    guardar_estado(ultimo_avance=_ahora())
 
     pasos = armar_pasos(m.get("apify", False), m.get("firecrawl", True), m.get("fases", FASES))
     if i >= len(pasos):
@@ -454,6 +586,13 @@ def pipeline_paso(mensaje: func.QueueMessage, siguiente: func.Out[str]) -> None:
                 guardar_estado(ultima_silver=est.get("inicio") or _ahora())
         else:
             ok, detalle = correr_script(paso["carpeta"], paso["script"], paso["args"])
+            if paso.get("grupo") and any(t in detalle for t in FIN_DE_GRUPO):
+                j = fin_de_grupo(pasos, i)
+                if j > i + 1:
+                    detalle = (f"[Se saltan {j - i - 1} tramos restantes de esta fase: "
+                               f"no queda nada pendiente o se agotó la cuota del día]\n") + detalle
+                    sig = {k: v for k, v in m.items() if k not in ("c", "desde", "sil_desde", "sil_err")}
+                    sig["i"] = j
     except Exception as ex:                 # noqa: BLE001
         ok, detalle = False, f"{type(ex).__name__}: {ex}"
 
@@ -473,12 +612,16 @@ def pipeline_paso(mensaje: func.QueueMessage, siguiente: func.Out[str]) -> None:
         sig["i"] = i + 1
 
     if sig["i"] < len(pasos):
+        msg = json.dumps(sig)
+        cambio_paso = sig["i"] != i
         guardar_estado(paso_actual=sig["i"], nombre_paso=pasos[sig["i"]]["nombre"],
-                       pasos_con_error=con_error, errores=errores)
-        siguiente.set(json.dumps(sig))
+                       pasos_con_error=con_error, errores=errores, ultimo_avance=_ahora(),
+                       msg_actual=msg, clave_actual=clave_msg(sig),
+                       **({"reanudaciones_paso": 0} if cambio_paso else {}))
+        siguiente.set(msg)
     else:
         guardar_estado(paso_actual=len(pasos), nombre_paso="", pasos_con_error=con_error,
-                       errores=errores, fin=_ahora(),
+                       errores=errores, fin=_ahora(), clave_actual="", ultimo_avance=_ahora(),
                        estado="completada" if con_error == 0 else "completada con errores")
         log.info("Corrida %s terminada (%s pasos con error).", corrida, con_error)
 
@@ -502,7 +645,8 @@ def pipeline_estado(req: func.HttpRequest) -> func.HttpResponse:
     if not est:
         return func.HttpResponse(json.dumps({"estado": "sin corridas", "configuracion": config_txt},
                                             ensure_ascii=False, indent=2), mimetype="application/json")
-    est = {k: v for k, v in est.items() if k not in ("PartitionKey", "RowKey")}
+    est = {k: v for k, v in est.items()
+           if k not in ("PartitionKey", "RowKey", "msg_actual", "clave_actual")}
     est["configuracion"] = config_txt
     try:
         filas = list(_tabla("pipelineLog").query_entities(f"PartitionKey eq '{est['corrida']}'"))
