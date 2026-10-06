@@ -426,6 +426,15 @@ def main():
         print(f"       {fila['servicio']} porque: {fila['por_que'][:110]}  | fuente: {fila['evidencia'][:60]}")
         time.sleep(PAUSA_SEG)
 
+    # Resumen: cuántos tienen una necesidad de TI concreta (los que muestra el tablero).
+    # Los "Por identificar" se guardan igual (trazabilidad), pero el tablero los oculta.
+    for etiqueta in ("Lead", "Captura"):
+        grupo = [f for f in filas if f["tipo"] == etiqueta]
+        accion = [f for f in grupo if f["servicio"] != "Por identificar"
+                  and not _es_relleno(f["senal"])]
+        print(f"  {etiqueta}s: {len(accion)} con servicio TAK identificado "
+              f"(se muestran) de {len(grupo)}; {len(grupo) - len(accion)} sin necesidad TI (ocultos).")
+
     if not escribir:
         print("\n[SIMULACRO] No escribí la tabla. Corre con --escribir para crearla.")
         return

@@ -212,53 +212,114 @@ def alertas_licitaciones(tsc):
     return alertas          # TODAS las licitaciones vigentes de TI, de la que cierra antes a la última
 
 
-def alertas_regulatorio(bs):
+# ── Filtro regulatorio ────────────────────────────────────────────────
+# Se comparan PALABRAS COMPLETAS (no pedazos): antes "tic" coincidía con
+# "polí-TIC-a" y "ley" con "LEY-enda", y así se colaban columnas de opinión.
+# Una noticia entra solo si cumple las TRES condiciones:
+#   1) habla de un ACTO normativo concreto (decreto, resolución, ley, circular...)
+#   2) trata un tema de TI empresarial relevante para TAK
+#   3) no es opinión, premio, evento ni un tema ajeno (salud, educación, energía...)
+REG_ACTO = [
+    r"decretos?", r"resoluci[oó]n(es)?", r"leyes", r"ley", r"proyectos? de ley",
+    r"circular(es)?", r"conpes", r"reglament\w*",
+    r"regulaci[oó]n(es)?", r"regula", r"regular[aá]", r"normativ\w*", r"normas?",
+    r"sanciona\w*", r"sanci[oó]n(es)?", r"multa\w*", r"obligatori\w*",
+    r"entra(r[aá])? en vigencia", r"entra(r[aá])? en vigor", r"habeas data",
+]
+REG_TEMA = [
+    r"datos", r"data", r"ciberseguridad", r"seguridad (de la informaci[oó]n|digital)",
+    r"protecci[oó]n de datos", r"privacidad", r"habeas data", r"soberan[ií]a de datos",
+    r"transformaci[oó]n digital", r"inteligencia artificial", r"ia", r"tecnolog[ií]as?",
+    r"software", r"nube", r"cloud", r"contrataci[oó]n p[uú]blica", r"secop",
+    r"compras? p[uú]blicas?", r"interoperabilidad", r"gobierno digital", r"mintic",
+    r"tic", r"computaci[oó]n", r"infraestructura tecnol[oó]gica",
+    r"comercio electr[oó]nico", r"firma (electr[oó]nica|digital)",
+    r"factura(ci[oó]n)? electr[oó]nica", r"expediente electr[oó]nico", r"digital(es)?",
+    r"ciberdelitos?", r"telecomunicaciones", r"sic", r"superindustria",
+]
+REG_RUIDO = [
+    r"awards?", r"ranking", r"premios?", r"puestos?", r"escalaf[oó]n", r"inversi[oó]n de",
+    r"alianzas?", r"sello", r"financiaci[oó]n", r"financiamiento", r"startups?", r"cupos?",
+    r"ni[nñ]os", r"menores", r"colegios?", r"escolar(es)?", r"educaci[oó]n b[aá]sica",
+    r"redes sociales", r"salud", r"ambiental(es)?", r"energ[ií]a", r"solar", r"agua",
+    r"foro", r"evento", r"congreso", r"webinar", r"convocatoria", r"entrevista",
+    r"opini[oó]n", r"columna", r"hay que", r"deber[ií]a(n)?", r"urge",
+]
+
+
+def _patron(lista):
+    return re.compile(r"\b(" + "|".join(lista) + r")\b", re.IGNORECASE)
+
+
+_RE_ACTO, _RE_TEMA, _RE_RUIDO = _patron(REG_ACTO), _patron(REG_TEMA), _patron(REG_RUIDO)
+
+
+def clasificar_regulatorio(titulo: str) -> tuple[bool, str]:
+    """QUÉ HACE: decide si un titular es un cambio normativo de TI. Devuelve
+    (pasa, motivo); el motivo dice qué palabra lo hizo entrar o salir."""
+    t = " ".join(str(titulo or "").replace("\u201c", '"').replace("\u201d", '"').split())
+    if not t:
+        return False, "sin título"
+    if t[:1] in "\"'«":
+        return False, "es una cita/opinión (empieza entre comillas)"
+    r = _RE_RUIDO.search(t)
+    if r:
+        return False, f"tema ajeno u opinión: '{r.group(0)}'"
+    a = _RE_ACTO.search(t)
+    if not a:
+        return False, "no menciona un acto normativo"
+    m = _RE_TEMA.search(t)
+    if not m:
+        return False, f"normativo ('{a.group(0)}') pero no de TI"
+    return True, f"acto '{a.group(0)}' + tema '{m.group(0)}'"
+
+
+def alertas_regulatorio(bs, mostrar_rechazos: bool = False):
     """Cambios normativos recientes y reales (sin ruido). La normativa tiene un
-    ritmo más lento que las noticias, así que la ventana es más amplia (6 meses)."""
+    ritmo más lento que las noticias, así que la ventana es más amplia (6 meses).
+    Si ninguna noticia cumple el filtro, la columna queda vacía: es preferible a
+    mostrarle al gerente algo que no es regulación."""
     cli = bs.get_container_client("silver-regulatorio")
     corte = (datetime.now(timezone.utc) - timedelta(days=180)).strftime("%Y-%m-%d")
-    # DEBE ser normativa (ley/decreto/resolución...)
-    NORMATIVO = ["ley", "decreto", "resolucion", "circular", "norma", "politica publica",
-                 "regulacion", "regulatorio", "reglament", "proyecto de ley", "conpes"]
-    # Y ADEMÁS debe tratar de un tema de TI EMPRESARIAL relevante para TAK
-    TEMA_TI = ["datos", "data", "ciberseguridad", "seguridad de la informacion",
-               "seguridad digital", "proteccion de datos", "habeas data", "soberania de datos",
-               "transformacion digital", "inteligencia artificial", " ia ", "tecnologia",
-               "software", "nube", "cloud", "contratacion publica", "secop", "compra publica",
-               "interoperabilidad", "gobierno digital", "mintic", "tic", "computacion",
-               "infraestructura tecnologica", "comercio electronico", "firma electronica",
-               "factura electronica", "expediente electronico"]
-    # ruido a excluir (aunque sea decreto, si es de estos temas NO va)
-    RUIDO = ["award", "ranking", "premio", "puesto", "escala", "inversion de", "alianza",
-             "sella", "financiamiento", "startup", "cupo",
-             "ninos", "menores", "colegios", "escolar", "educacion basica",
-             "redes sociales", "salud", "ambiental", "energia", "solar", "agua"]
-    alertas = []
+    alertas, rechazos = [], []
+    vistos = set()
     for b in cli.list_blobs():
         try:
             d = json.loads(cli.get_blob_client(b.name).download_blob().readall())
         except Exception:
             continue
-        titulo = d.get("titulo","") or ""
-        tl = _norm(titulo)
+        titulo = d.get("titulo", "") or ""
         fecha = str(d.get("fecha_evento_utc") or "")[:10]
-        if not fecha or fecha < corte: continue           # solo recientes
-        if any(x in tl for x in RUIDO): continue           # sin ruido
-        if not any(x in tl for x in NORMATIVO): continue   # DEBE ser normativa
-        if not any(x in tl for x in TEMA_TI): continue     # Y de tema TI empresarial
+        if not fecha or fecha < corte:
+            continue                                        # solo recientes
+        clave_tit = _norm(titulo)[:80]
+        if clave_tit in vistos:
+            continue                                        # misma noticia en dos fuentes
+        vistos.add(clave_tit)
+        pasa, motivo = clasificar_regulatorio(titulo)
+        if not pasa:
+            rechazos.append((fecha, titulo, motivo))
+            continue
         alertas.append({
             "tipo": "REGULATORIO",
             "titulo": "Cambio normativo",
             "detalle": titulo[:160],
-            "entidad": d.get("fuente_original",""),
+            "entidad": d.get("fuente_original", ""),
             "fecha": fecha,
             "monto": 0,
             "categoria": "Regulatorio",
             "por_que": "Nuevas obligaciones pueden generar demanda de servicios TI.",
             "url": d.get("url", "") or "",
-            "clave": d.get("id","") or titulo[:40],
+            "clave": d.get("id", "") or titulo[:40],
+            "motivo": motivo,
         })
     alertas.sort(key=lambda x: x["fecha"], reverse=True)
+    if mostrar_rechazos:
+        rechazos.sort(reverse=True)
+        print(f"\n  Regulatorio: {len(alertas)} aceptadas, {len(rechazos)} descartadas (recientes).")
+        print("  Últimas descartadas y por qué:")
+        for f, t, mo in rechazos[:15]:
+            print(f"    [{f}] {t[:70]}  -> {mo}")
     return alertas[:5]
 
 
@@ -323,7 +384,7 @@ def main():
     print("Generando centro de alertas...")
     comp = alertas_competencia(tsc)
     lic = alertas_licitaciones(tsc)
-    reg = alertas_regulatorio(bs)
+    reg = alertas_regulatorio(bs, mostrar_rechazos=not escribir)
     # Las señales de clientes viven en la sección Ventas: no se repiten aquí.
     venc = alertas_vencimientos(tsc)
 
@@ -357,9 +418,11 @@ def main():
 
     print(f"\n  TOTAL alertas: {len(filas)}")
     if reg:
-        print("\n  Ejemplos regulatorio (recientes, sin ruido):")
-        for a in reg[:3]:
-            print(f"    [{a['fecha']}] {a['detalle'][:55]}")
+        print("\n  Regulatorio que se mostrará (y por qué pasó el filtro):")
+        for a in reg:
+            print(f"    [{a['fecha']}] {a['detalle'][:70]}  -> {a['motivo']}")
+    else:
+        print("\n  Regulatorio: ninguna noticia reciente es un cambio normativo de TI (columna vacía).")
 
     if not escribir:
         print("\n[SIMULACRO] No escribí la tabla. Corre con --escribir para crearla.")
