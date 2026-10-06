@@ -43,7 +43,9 @@ CONTENEDORES = [
     "silver-tendencias", "silver-proveedores", "silver-regulatorio",
     "silver-mercado", "silver-capacidades",
 ]
-MODELOS_CANDIDATOS = ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
+# Solo modelos vigentes: gemini-2.5-flash-lite y gemini-2.5-flash ya fueron retirados
+# por Google (responden 404). Si se agrega un respaldo, verificar antes que exista.
+MODELOS_CANDIDATOS = ["gemini-3.1-flash-lite"]
 LIMITE_DIARIO_DEFAULT = 450     # margen bajo el 500/dia real del free tier
 PAUSA_SEG = 5                   # ~12/min, bajo el limite de 15 RPM
 MAX_REINTENTOS = 4
@@ -92,6 +94,12 @@ def get_conn():
 
 
 def elegir_modelo(client):
+    """
+    Devuelve el primer modelo que responde. Si alguno responde 429 (cuota diaria
+    agotada) devuelve "__CUOTA__": no es un error, lo pendiente sigue mañana.
+    Solo es error de verdad si ningún modelo existe o la llave es inválida.
+    """
+    cuota = False
     for m in MODELOS_CANDIDATOS:
         try:
             client.models.generate_content(
@@ -100,8 +108,12 @@ def elegir_modelo(client):
             print(f"Modelo activo: {m}")
             return m
         except Exception as e:
+            if getattr(e, "code", None) == 429 or "RESOURCE_EXHAUSTED" in str(e):
+                cuota = True
             print(f"  {m} no disponible ({str(e)[:50]}...)")
-    print("Ningun modelo candidato respondio. Revisa cuota/IDs.")
+    if cuota:
+        return "__CUOTA__"
+    print("Ningun modelo candidato respondio. Revisa la llave GEMINI_API_KEY o los IDs de modelo.")
     sys.exit(1)
 
 
@@ -251,6 +263,10 @@ def main():
         print("ERROR: falta GEMINI_API_KEY"); sys.exit(1)
     client = genai.Client(api_key=api_key)
     modelo = elegir_modelo(client)
+    if modelo == "__CUOTA__":
+        print("\n*** CUOTA DIARIA AGOTADA antes de empezar. ***")
+        print(f"Quedan {len(pendientes)}+ registros pendientes; se clasifican en la próxima corrida.")
+        return
 
     procesados = 0
     tanda = pendientes[:args.limite]
@@ -268,7 +284,7 @@ def main():
 
         if g_tema == "__CUOTA__":
             print(f"\n*** CUOTA DIARIA AGOTADA en el registro {i}. ***")
-            print(f"Progreso guardado. Vuelve a correr manana (reset 7PM Colombia) para continuar.")
+            print(f"Progreso guardado. Se continua en la proxima corrida (la cuota se renueva a medianoche, hora del Pacifico).")
             break
         if not g_tema:
             continue   # error puntual: se reintentara en otra corrida (no se marca hecho)
