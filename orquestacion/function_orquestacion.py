@@ -22,6 +22,12 @@ Se cambia sin redesplegar; la siguiente corrida ya toma los valores nuevos:
                                  0 = nunca.                            (defecto: 14)
   PIPELINE_INCLUIR_APIFY         true / false. Redes sociales y LinkedIn
                                  (CUESTAN crédito de Apify).           (defecto: false)
+  PIPELINE_DIAS_SEMANA           Días de la semana en que SÍ corre, separados por coma:
+                                 lun,mar,mie,jue,vie,sab,dom. Vacío = todos.
+                                 Ej.: lun,mar,mie,jue = solo de lunes a jueves.
+  PIPELINE_DESDE / PIPELINE_HASTA  Fechas (AAAA-MM-DD) entre las que corre. Vacías =
+                                 sin límite. Ej.: DESDE=2026-11-02 y HASTA=2026-11-05
+                                 = corre solo esos 4 días y después se detiene sola.
 
 EJECUCIÓN MANUAL:  GET /api/pipeline/ejecutar   (respeta la misma configuración)
   Parámetros opcionales, solo para ESA corrida:
@@ -196,14 +202,50 @@ def _entero(nombre: str, defecto: int, minimo: int, maximo: int) -> int:
     return max(minimo, min(maximo, v))
 
 
+DIAS_SEMANA = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]   # lunes = 0, como Python
+
+
+def _dias_semana(texto: str) -> list[int]:
+    """'lun,mar, Miércoles' -> [0, 1, 2]. Vacío o sin días válidos -> todos los días."""
+    import unicodedata
+    dias = []
+    for parte in (texto or "").split(","):
+        p = "".join(c for c in unicodedata.normalize("NFKD", parte.strip().lower())
+                    if not unicodedata.combining(c))[:3]
+        if p in DIAS_SEMANA and DIAS_SEMANA.index(p) not in dias:
+            dias.append(DIAS_SEMANA.index(p))
+    return sorted(dias) or list(range(7))
+
+
+def _fecha(nombre: str):
+    try:
+        return datetime.strptime(os.environ.get(nombre, "").strip(), "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 def leer_config() -> dict:
-    """QUÉ HACE: lee los 4 valores que configura el cliente (con valores seguros por defecto)."""
+    """QUÉ HACE: lee los valores que configura el cliente (con valores seguros por defecto)."""
     return {
         "hora": _entero("PIPELINE_HORA", 2, 0, 23),
         "cada_dias": _entero("PIPELINE_CADA_DIAS", 1, 0, 365),
         "firecrawl_cada_dias": _entero("PIPELINE_FIRECRAWL_CADA_DIAS", 14, 0, 365),
         "apify": os.environ.get("PIPELINE_INCLUIR_APIFY", "false").strip().lower() in ("true", "1", "si", "sí"),
+        "dias_semana": _dias_semana(os.environ.get("PIPELINE_DIAS_SEMANA", "")),
+        "desde": _fecha("PIPELINE_DESDE"),
+        "hasta": _fecha("PIPELINE_HASTA"),
     }
+
+
+def toca_hoy(cfg: dict, hoy) -> bool:
+    """QUÉ HACE: True si la fecha de hoy (Colombia) cumple el día de la semana y el rango."""
+    if hoy.weekday() not in cfg["dias_semana"]:
+        return False
+    if cfg["desde"] and hoy < cfg["desde"]:
+        return False
+    if cfg["hasta"] and hoy > cfg["hasta"]:
+        return False
+    return True
 
 
 def hoy_colombia() -> datetime:
@@ -514,6 +556,8 @@ def pipeline_programado(timer: func.TimerRequest, siguiente: func.Out[str]) -> N
     ahora = hoy_colombia()
     if ahora.hour != cfg["hora"]:
         return
+    if not toca_hoy(cfg, ahora.date()):
+        return                                          # hoy no es día de corrida
     est = leer_estado() or {}
     dias = _dias_desde(est.get("ultima_auto"))
     if dias is not None and dias < cfg["cada_dias"]:
@@ -626,6 +670,16 @@ def pipeline_paso(mensaje: func.QueueMessage, siguiente: func.Out[str]) -> None:
         log.info("Corrida %s terminada (%s pasos con error).", corrida, con_error)
 
 
+def _hora_colombia(texto: str | None) -> str:
+    """'2026-10-06 07:00:00 UTC' -> '06/10/2026 2:00 a. m.' (hora de Colombia)."""
+    try:
+        t = datetime.strptime(str(texto), "%Y-%m-%d %H:%M:%S UTC") + timedelta(hours=UTC_COLOMBIA)
+    except (TypeError, ValueError):
+        return ""
+    h12 = t.hour % 12 or 12
+    return f"{t:%d/%m/%Y} {h12}:{t:%M} {'a. m.' if t.hour < 12 else 'p. m.'}"
+
+
 @bp.route(route="pipeline/estado", methods=["GET"])
 def pipeline_estado(req: func.HttpRequest) -> func.HttpResponse:
     """Estado de la corrida actual o la última, con los últimos pasos ejecutados."""
@@ -641,12 +695,21 @@ def pipeline_estado(req: func.HttpRequest) -> func.HttpResponse:
         "firecrawl_en_proxima_corrida": toca_firecrawl(est, cfg),
         "dias_desde_ultima_firecrawl": dias_fc,
         "apify": "incluido" if cfg["apify"] else "apagado",
+        "dias_semana": ("todos" if len(cfg["dias_semana"]) == 7 else
+                        ",".join(DIAS_SEMANA[d] for d in cfg["dias_semana"])),
+        "desde": cfg["desde"].isoformat() if cfg["desde"] else "sin límite",
+        "hasta": cfg["hasta"].isoformat() if cfg["hasta"] else "sin límite",
+        "corre_hoy": cfg["cada_dias"] > 0 and toca_hoy(cfg, hoy_colombia().date()),
     }
     if not est:
         return func.HttpResponse(json.dumps({"estado": "sin corridas", "configuracion": config_txt},
                                             ensure_ascii=False, indent=2), mimetype="application/json")
     est = {k: v for k, v in est.items()
            if k not in ("PartitionKey", "RowKey", "msg_actual", "clave_actual")}
+    # Las horas se guardan en UTC (horario de Azure); se agregan en hora de Colombia
+    # para que se lean sin hacer cuentas: 07:00 UTC = 2:00 a. m. en Colombia.
+    for campo in ("inicio", "fin", "ultimo_avance"):
+        est[f"{campo}_colombia"] = _hora_colombia(est.get(campo))
     est["configuracion"] = config_txt
     try:
         filas = list(_tabla("pipelineLog").query_entities(f"PartitionKey eq '{est['corrida']}'"))

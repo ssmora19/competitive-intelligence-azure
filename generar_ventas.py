@@ -23,6 +23,11 @@ TABLA_VEREDICTOS = "goldVeredictos"
 TABLA_VENTAS = "goldVentas"
 MODELO_GROQ = "qwen/qwen3.8-27b"
 PAUSA_SEG = 2.1
+# Ahorro de cupo de Groq: un prospecto solo se vuelve a analizar si es nuevo, si cambió su
+# evidencia o si su análisis tiene más de DIAS_VIGENCIA_ANALISIS días; y como máximo
+# MAX_ANALISIS_POR_CORRIDA por corrida (el resto conserva su análisis anterior).
+MAX_ANALISIS_POR_CORRIDA = 30
+DIAS_VIGENCIA_ANALISIS = 7
 CLAVE_GROQ_EN_SETTINGS = "GROQ_API_KEY"
 
 TIPOS_VENTA = {"lead_score", "oportunidad_captura"}
@@ -290,11 +295,40 @@ def _normalizar_servicio(serv: str) -> str:
     return SERVICIOS_CANONICOS.get(key, s.capitalize())
 
 
+def _firma(tipo, evidencias):
+    """Huella de la evidencia de un prospecto: si no cambia, el análisis anterior sigue vigente."""
+    import hashlib
+    base = json.dumps([tipo] + [[e.get("titulo", ""), e.get("fecha", "")] for e in evidencias],
+                      ensure_ascii=False)
+    return hashlib.sha1(base.encode("utf-8")).hexdigest()[:16]
+
+
+def _dias_desde(fecha_txt):
+    from datetime import datetime, timezone
+    try:
+        f = datetime.strptime(str(fecha_txt)[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - f).days
+    except (TypeError, ValueError):
+        return None
+
+
+def _desde_previo(previo):
+    """Análisis guardado en la corrida anterior, en el formato que usa main()."""
+    data = {"servicio": previo.get("servicio", ""), "nivel": previo.get("nivel_encaje", "Medio"),
+            "senal": previo.get("senal", ""), "recomendacion": previo.get("recomendacion", ""),
+            "por_que": previo.get("por_que", "")}
+    evid = {"titulo": previo.get("evidencia", ""), "fecha": previo.get("evidencia_fecha", ""),
+            "url": previo.get("evidencia_url", "")}
+    return data, evid, str(previo.get("fecha_senal", "") or ""), str(previo.get("analizado", "") or "")
+
+
 def main():
+    from datetime import datetime, timezone
     from azure.data.tables import TableServiceClient, UpdateMode
     from groq import Groq
     escribir = "--escribir" in sys.argv
     tope = next((int(a) for a in sys.argv[1:] if a.isdigit()), None)
+    hoy = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     cliente = Groq(api_key=_groq_key())
     tsc = TableServiceClient.from_connection_string(_conn())
@@ -317,14 +351,12 @@ def main():
             excluidos += 1
             continue
         prospectos.append(e)
-
+    if tope is not None:
+        prospectos = prospectos[:tope]
     print(f"Prospectos de venta: {len(prospectos)}  (excluidos {excluidos} competidores)")
 
-    # Análisis de la corrida anterior, por prospecto. Si Groq falla con un prospecto
-    # (p. ej. límite diario, error 429), se CONSERVA su análisis anterior en vez de
-    # escribir un texto de relleno que no le dice nada al usuario.
+    # Análisis de la corrida anterior, por prospecto (sin textos de relleno).
     previos = {}
-    evid_prev = None
     try:
         for p in tsc.get_table_client(TABLA_VENTAS).list_entities():
             senal_p = str(p.get("senal", "") or "")
@@ -332,12 +364,14 @@ def main():
                 previos[_norm(p.get("prospecto", ""))] = p
     except Exception:
         pass
-    conservados = pendientes = 0
-    filas = []
-    hechos = 0
+
+    # ── 1) Contexto de cada prospecto y decisión: ¿hace falta volver a analizarlo? ──
+    # Groq gratis da 200.000 tokens en 24 h (ventana móvil) y el tablero también los usa.
+    # Por eso solo se analizan los prospectos NUEVOS, los que tienen EVIDENCIA NUEVA o los
+    # que llevan más de DIAS_VIGENCIA_ANALISIS días sin revisar; el resto conserva su
+    # análisis. Y nunca más de MAX_ANALISIS_POR_CORRIDA por corrida.
+    items = []
     for e in prospectos:
-        if tope is not None and hechos >= tope:
-            break
         nombre = e.get("entidad_nombre", "")
         tipo = e.get("tipo_veredicto", "")
         try:
@@ -345,45 +379,82 @@ def main():
         except (TypeError, ValueError):
             score = 0
         nombre_limpio = re.sub(r"\s*\(cliente de.*?\)", "", nombre, flags=re.IGNORECASE).strip()
-        competidor = _competidor_de(nombre)
         noticias = _noticias_de(nombre_limpio)
         secop_items = _secop_items_de(nombre_limpio)
-        n_secop = len(secop_items)
         evidencias = _evidencias(noticias, secop_items)
-        origen = "noticia" if noticias else ("secop" if n_secop > 0 else "general")
-        # NOVEDAD: fecha de la señal = fecha de la noticia más reciente
-        fecha_senal = noticias[0].get("fecha", "") if noticias else ""
-        try:
-            resp = cliente.chat.completions.create(
-                model=MODELO_GROQ,
-                messages=[{"role": "system", "content": SYSTEM},
-                          {"role": "user", "content": _prompt(nombre_limpio, tipo, f"{score:.2f}", evidencias, n_secop)}],
-                temperature=0.5, max_tokens=220,
-            )
-            txt = resp.choices[0].message.content.strip().replace("```json", "").replace("```", "").strip()
-            data = json.loads(txt)
-        except Exception as ex:
-            print(f"  ERROR {nombre_limpio}: {ex}")
-            previo = previos.get(_norm(nombre_limpio))
-            if previo:
-                # Se conserva el análisis real de la corrida anterior (con su fecha).
-                data = {"servicio": previo.get("servicio", ""), "nivel": previo.get("nivel_encaje", "Medio"),
-                        "senal": previo.get("senal", ""), "recomendacion": previo.get("recomendacion", ""),
-                        "por_que": previo.get("por_que", "")}
-                evid_prev = {"titulo": previo.get("evidencia", ""), "fecha": previo.get("evidencia_fecha", ""),
-                             "url": previo.get("evidencia_url", "")}
-                fecha_senal = str(previo.get("fecha_senal", "") or "")
-                conservados += 1
-                print("     -> se conserva su análisis anterior")
+        firma = _firma(tipo, evidencias)
+        previo = previos.get(_norm(nombre_limpio))
+        if previo is None:
+            motivo, prioridad = "nuevo", 0
+        elif str(previo.get("firma_evidencia", "") or "") != firma:
+            motivo, prioridad = "evidencia nueva", 1
+        else:
+            dias = _dias_desde(previo.get("analizado"))
+            if dias is None or dias >= DIAS_VIGENCIA_ANALISIS:
+                motivo, prioridad = f"revisión periódica ({dias} días)", 2
             else:
-                # Prospecto nuevo sin análisis previo: queda marcado como pendiente
-                # (no aparece en el Centro de Alertas hasta que tenga análisis real).
+                motivo, prioridad = "vigente", 9
+        items.append({"e": e, "nombre": nombre, "nombre_limpio": nombre_limpio, "tipo": tipo,
+                      "score": score, "noticias": noticias, "secop": secop_items,
+                      "evidencias": evidencias, "firma": firma, "previo": previo,
+                      "motivo": motivo, "prioridad": prioridad})
+
+    candidatos = sorted((x for x in items if x["prioridad"] < 9),
+                        key=lambda x: (x["prioridad"], str((x["previo"] or {}).get("analizado", "")),
+                                       -x["score"]))
+    a_analizar = {id(x) for x in candidatos[:MAX_ANALISIS_POR_CORRIDA]}
+    print(f"Por analizar con IA: {len(a_analizar)} (de {len(candidatos)} que lo necesitan; "
+          f"tope {MAX_ANALISIS_POR_CORRIDA}). Vigentes sin cambios: {len(items) - len(candidatos)}.")
+
+    # ── 2) Análisis y armado de filas ──
+    conservados = pendientes = analizados = 0
+    groq_agotado = False
+    filas = []
+    hechos = 0
+    for x in items:
+        tipo, score = x["tipo"], x["score"]
+        nombre_limpio, previo, evidencias = x["nombre_limpio"], x["previo"], x["evidencias"]
+        competidor = _competidor_de(x["nombre"])
+        n_secop = len(x["secop"])
+        origen = "noticia" if x["noticias"] else ("secop" if n_secop > 0 else "general")
+        fecha_senal = x["noticias"][0].get("fecha", "") if x["noticias"] else ""
+        evid_prev = None
+        analizado = hoy
+        data = None
+
+        if id(x) in a_analizar and not groq_agotado:
+            try:
+                resp = cliente.chat.completions.create(
+                    model=MODELO_GROQ,
+                    messages=[{"role": "system", "content": SYSTEM},
+                              {"role": "user", "content": _prompt(nombre_limpio, tipo, f"{score:.2f}", evidencias, n_secop)}],
+                    temperature=0.5, max_tokens=220,
+                )
+                txt = resp.choices[0].message.content.strip().replace("```json", "").replace("```", "").strip()
+                data = json.loads(txt)
+                analizados += 1
+                time.sleep(PAUSA_SEG)
+            except Exception as ex:
+                print(f"  ERROR {nombre_limpio}: {ex}")
+                if "429" in str(ex) or "rate_limit" in str(ex).lower():
+                    # Sin cupo: no se vuelve a llamar a Groq en esta corrida.
+                    groq_agotado = True
+                    print("  Groq sin cupo: el resto de prospectos conserva su análisis anterior.")
+
+        if data is None:
+            if previo:
+                # Análisis vigente (o sin cupo de IA): se conserva el anterior, con su fecha.
+                data, evid_prev, fecha_senal, analizado = _desde_previo(previo)
+                conservados += 1
+            else:
+                # Prospecto nuevo sin análisis: pendiente (el tablero no lo muestra).
                 data = {"servicio": "Por identificar", "nivel": "Pendiente",
                         "senal": TEXTO_PENDIENTE, "recomendacion": "Se completa en la próxima corrida.",
                         "por_que": ""}
+                analizado = ""
                 pendientes += 1
-        # EVIDENCIA: la noticia concreta en la que se basó la IA (o SECOP), para que el
-        # usuario vea de dónde sale la señal y el servicio sugerido.
+
+        # EVIDENCIA: la noticia o el proceso SECOP en que se basó la IA.
         evid = {"titulo": "", "fecha": "", "url": ""}
         if evid_prev is not None:
             evid = evid_prev
@@ -398,7 +469,6 @@ def main():
                 evid = dict(evidencias[0])
             if evid.get("origen") == "secop":
                 evid["titulo"] = "SECOP: " + evid["titulo"][:150]
-        evid_prev = None
         if evid.get("fecha"):
             fecha_senal = evid["fecha"]   # la fecha de la señal = la de su evidencia
         fila = {
@@ -414,17 +484,22 @@ def main():
             "recomendacion": str(data.get("recomendacion", "")),
             "origen": origen,
             "n_secop": n_secop,
-            "fecha_senal": fecha_senal,   # NOVEDAD
+            "fecha_senal": fecha_senal,
             "por_que": str(data.get("por_que", "") or ""),
             "evidencia": str(evid.get("titulo", "") or ""),
             "evidencia_fecha": str(evid.get("fecha", "") or ""),
             "evidencia_url": str(evid.get("url", "") or ""),
+            # Para la próxima corrida: con qué evidencia y cuándo se hizo este análisis.
+            # Si el análisis se conservó sin cupo de IA, la firma vieja obliga a re-analizarlo.
+            "firma_evidencia": (x["firma"] if (data is not None and evid_prev is None and analizado == hoy)
+                                else str((previo or {}).get("firma_evidencia", "") or "")),
+            "analizado": analizado,
         }
         filas.append(fila)
         hechos += 1
-        print(f"  [{hechos}] {nombre_limpio[:20]:20} [{fila['tipo']}] [{fecha_senal or 'sin fecha'}] SEÑAL: {fila['senal']}")
+        estado = "IA" if (evid_prev is None and analizado == hoy) else ("conservado" if previo else "pendiente")
+        print(f"  [{hechos}] {nombre_limpio[:20]:20} [{fila['tipo']}] [{estado}: {x['motivo']}] SEÑAL: {fila['senal']}")
         print(f"       {fila['servicio']} porque: {fila['por_que'][:110]}  | fuente: {fila['evidencia'][:60]}")
-        time.sleep(PAUSA_SEG)
 
     # Resumen: cuántos tienen una necesidad de TI concreta (los que muestra el tablero).
     # Los "Por identificar" se guardan igual (trazabilidad), pero el tablero los oculta.
@@ -434,6 +509,8 @@ def main():
                   and not _es_relleno(f["senal"])]
         print(f"  {etiqueta}s: {len(accion)} con servicio TAK identificado "
               f"(se muestran) de {len(grupo)}; {len(grupo) - len(accion)} sin necesidad TI (ocultos).")
+    print(f"  Análisis con IA hoy: {analizados}. Conservados del análisis anterior: {conservados}. "
+          f"Pendientes: {pendientes}.")
 
     if not escribir:
         print("\n[SIMULACRO] No escribí la tabla. Corre con --escribir para crearla.")
@@ -459,10 +536,9 @@ def main():
         print("La tabla sigue en borrado. Espera 1 min y reintenta."); return
     for f in filas:
         tabla.upsert_entity(f, mode=UpdateMode.REPLACE)
-    print(f"\nListo. Tabla '{TABLA_VENTAS}' con {len(filas)} prospectos (con fecha_senal). Refresca Power BI.")
-    if conservados or pendientes:
-        print(f"  Sin respuesta de la IA: {conservados} conservaron su análisis anterior, "
-              f"{pendientes} quedaron pendientes para la próxima corrida.")
+    print(f"\nListo. Tabla '{TABLA_VENTAS}' con {len(filas)} prospectos. Refresca Power BI.")
+    if groq_agotado:
+        print("  Groq se quedó sin cupo en esta corrida: Rate limit. Lo pendiente se analiza mañana.")
 
 
 if __name__ == "__main__":

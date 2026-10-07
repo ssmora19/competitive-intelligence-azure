@@ -95,24 +95,43 @@ def get_conn():
 
 def elegir_modelo(client):
     """
-    Devuelve el primer modelo que responde. Si alguno responde 429 (cuota diaria
-    agotada) devuelve "__CUOTA__": no es un error, lo pendiente sigue mañana.
-    Solo es error de verdad si ningún modelo existe o la llave es inválida.
+    Devuelve el primer modelo que responde.
+    - 429 (cuota diaria agotada) -> "__CUOTA__": lo pendiente sigue en la próxima corrida.
+    - 503 (Google saturado, falla temporal suya) -> reintenta con esperas de 30 s, 60 s y
+      120 s; si sigue saturado devuelve "__NO_DISPONIBLE__": este tramo no clasifica nada,
+      pero no es un error del sistema y los tramos siguientes vuelven a intentarlo.
+    Solo es error de verdad si la llave es inválida o el modelo no existe.
     """
-    cuota = False
+    cuota = saturado = False
     for m in MODELOS_CANDIDATOS:
-        try:
-            client.models.generate_content(
-                model=m, contents="ok",
-                config=types.GenerateContentConfig(max_output_tokens=5))
-            print(f"Modelo activo: {m}")
-            return m
-        except Exception as e:
-            if getattr(e, "code", None) == 429 or "RESOURCE_EXHAUSTED" in str(e):
-                cuota = True
-            print(f"  {m} no disponible ({str(e)[:50]}...)")
+        for intento, espera in enumerate([30, 60, 120, None]):
+            try:
+                client.models.generate_content(
+                    model=m, contents="ok",
+                    config=types.GenerateContentConfig(max_output_tokens=5))
+                print(f"Modelo activo: {m}")
+                return m
+            except Exception as e:
+                code = getattr(e, "code", None)
+                txt = str(e)
+                if code == 429 or "RESOURCE_EXHAUSTED" in txt:
+                    cuota = True
+                    print(f"  {m}: cuota diaria agotada (429).")
+                    break
+                if code in (500, 503) or "UNAVAILABLE" in txt or "overloaded" in txt.lower():
+                    saturado = True
+                    if espera is None:
+                        print(f"  {m}: Google sigue saturado tras {intento} reintentos.")
+                        break
+                    print(f"  {m}: Google saturado ({code}); reintento en {espera} s...")
+                    time.sleep(espera)
+                    continue
+                print(f"  {m} no disponible ({txt[:50]}...)")
+                break
     if cuota:
         return "__CUOTA__"
+    if saturado:
+        return "__NO_DISPONIBLE__"
     print("Ningun modelo candidato respondio. Revisa la llave GEMINI_API_KEY o los IDs de modelo.")
     sys.exit(1)
 
@@ -263,6 +282,10 @@ def main():
         print("ERROR: falta GEMINI_API_KEY"); sys.exit(1)
     client = genai.Client(api_key=api_key)
     modelo = elegir_modelo(client)
+    if modelo == "__NO_DISPONIBLE__":
+        print("\n*** GEMINI NO DISPONIBLE POR AHORA (servidor de Google saturado). ***")
+        print(f"Quedan {len(pendientes)}+ registros pendientes; el siguiente tramo o la próxima corrida los clasifica.")
+        return
     if modelo == "__CUOTA__":
         print("\n*** CUOTA DIARIA AGOTADA antes de empezar. ***")
         print(f"Quedan {len(pendientes)}+ registros pendientes; se clasifican en la próxima corrida.")
