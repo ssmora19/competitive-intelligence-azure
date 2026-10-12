@@ -1,0 +1,62 @@
+{
+    "rules": [
+        {
+            "enabled": true,
+            "name": "bronze-borrar-2-anios",
+            "type": "Lifecycle",
+            "definition": {
+                "actions": {
+                    "baseBlob": {
+                        "delete": {
+                            "daysAfterModificationGreaterThan": 730
+                        }
+                    }
+                },
+                "filters": {
+                    "blobTypes": [
+                        "blockBlob"
+                    ],
+                    "prefixMatch": [
+                        "bronze-competidores/",
+                        "bronze-clientes/",
+                        "bronze-clientes-competencia/",
+                        "bronze-mercado/",
+                        "bronze-proveedores/",
+                        "bronze-regulatorio/",
+                        "bronze-tendencias/",
+                        "bronze-capacidades/"
+                    ]
+                }
+            }
+        },
+        {
+            "enabled": true,
+            "name": "silver-borrar-3-anios",
+            "type": "Lifecycle",
+            "definition": {
+                "actions": {
+                    "baseBlob": {
+                        "delete": {
+                            "daysAfterModificationGreaterThan": 1095
+                        }
+                    }
+                },
+                "filters": {
+                    "blobTypes": [
+                        "blockBlob"
+                    ],
+                    "prefixMatch": [
+                        "silver-competidores/",
+                        "silver-clientes/",
+                        "silver-clientes-competencia/",
+                        "silver-mercado/",
+                        "silver-proveedores/",
+                        "silver-regulatorio/",
+                        "silver-tendencias/",
+                        "silver-capacidades/"
+                    ]
+                }
+            }
+        }
+    ]
+}

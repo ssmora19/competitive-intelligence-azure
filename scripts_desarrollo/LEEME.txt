@@ -1,0 +1,1 @@
+Herramientas usadas durante el desarrollo y la validacion del sistema. No se necesitan para operarlo y no se suben a Azure. Para ejecutar alguna, copiala a la raiz del proyecto.

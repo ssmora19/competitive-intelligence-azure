@@ -60,3 +60,6 @@ respaldo_*
 **/*.csv
 **/*.xlsx
 **/*.md
+
+scripts_desarrollo/
+evidencias_validacion/

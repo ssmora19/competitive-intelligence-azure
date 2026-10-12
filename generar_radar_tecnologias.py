@@ -41,22 +41,122 @@ PORTAFOLIO_TAK = [
 
 # Tecnologías/categorías candidatas a rastrear (las que el radar evalúa).
 # Se cuenta cuántas veces aparecen en tendencias globales y en SECOP.
+# Cada término es una EXPRESIÓN que se busca como PALABRA COMPLETA (ver _patron):
+# antes se buscaban pedazos de texto y "event" coincidía con "pr-event-ivo", "modelo"
+# con cualquier modelo y "seguridad" con vigilancia física. Por eso aquí solo van
+# términos inequívocos de cada tecnología (en español y en inglés).
 TECNOLOGIAS_RADAR = {
-    "Kubernetes / Contenedores": ["kubernetes", "docker", "container", "k8s", "openshift"],
-    "Serverless": ["serverless", "lambda", "faas", "functions"],
-    "IA Generativa / LLMs": ["llm", "gpt", "generative", "genai", "ia generativa", "copilot", "librechat"],
-    "Machine Learning": ["machine learning", "ml ", "tensorflow", "pytorch", "modelo"],
-    "Kafka / Streaming": ["kafka", "streaming", "pulsar", "event"],
-    "Ciberseguridad": ["security", "seguridad", "trivy", "vulnerab", "ciberseguridad", "firewall"],
-    "Data / Analytics": ["data", "analytics", "warehouse", "snowflake", "databricks", "bigdata"],
-    "Cloud / Nube": ["cloud", "nube", "aws", "azure", "gcp", "iaas", "paas"],
-    "DevOps / CI-CD": ["devops", "ci/cd", "pipeline", "terraform", "ansible", "traefik"],
-    "Blockchain": ["blockchain", "ethereum", "web3", "smart contract"],
-    "Bases de datos": ["database", "base de datos", "postgres", "oracle", "sql", "mongodb"],
-    "Observabilidad": ["observability", "monitoring", "prometheus", "grafana", "telemetry"],
-    "Low-code / No-code": ["low-code", "no-code", "lowcode"],
-    "Robótica / RPA": ["rpa", "robotic", "automation", "automatizacion"],
+    "Kubernetes / Contenedores": [r"kubernetes", r"k8s", r"docker", r"openshift", r"containers?",
+                                  r"contenedores de aplicaciones", r"tanzu", r"rancher"],
+    "Serverless": [r"serverless", r"faas", r"aws lambda", r"azure functions", r"cloud functions",
+                   r"sin servidor"],
+    "IA Generativa / LLMs": [r"llms?", r"gpt[\w.-]*", r"generative ai", r"genai", r"ia generativa",
+                             r"inteligencia artificial generativa", r"copilot", r"chatbots?",
+                             r"large language models?", r"ai agents?", r"agentes de ia", r"librechat"],
+    "Machine Learning": [r"machine learning", r"aprendizaje automatico", r"deep learning", r"mlops",
+                         r"tensorflow", r"pytorch", r"scikit-learn", r"analitica predictiva",
+                         r"modelos? predictivos?"],
+    "Kafka / Streaming": [r"kafka", r"apache pulsar", r"apache flink", r"flink", r"kinesis",
+                          r"event streaming", r"data streaming", r"stream processing",
+                          r"event[- ]driven", r"streaming de datos", r"procesamiento en tiempo real"],
+    "Ciberseguridad": [r"ciberseguridad", r"cybersecurity", r"seguridad informatica",
+                       r"seguridad de la informacion", r"seguridad digital", r"firewalls?",
+                       r"antivirus", r"siem", r"edr", r"xdr", r"ransomware", r"malware",
+                       r"vulnerabilidad(es)?", r"vulnerabilit(y|ies)", r"pentest(ing)?",
+                       r"hacking etico", r"zero trust", r"trivy"],
+    "Data / Analytics": [r"data warehouse", r"data lake(house)?", r"big ?data", r"analitica de datos",
+                         r"analytics", r"snowflake", r"databricks", r"business intelligence",
+                         r"inteligencia de negocios", r"power bi", r"tableau", r"qlik", r"etl",
+                         r"data engineering", r"ingenieria de datos"],
+    "Cloud / Nube": [r"cloud", r"nube", r"aws", r"amazon web services", r"azure", r"gcp",
+                     r"google cloud", r"iaas", r"paas", r"saas"],
+    "DevOps / CI-CD": [r"devops", r"ci/cd", r"terraform", r"ansible", r"jenkins", r"gitlab",
+                       r"github actions", r"integracion continua", r"despliegue continuo", r"traefik"],
+    "Blockchain": [r"blockchain", r"ethereum", r"web3", r"smart contracts?", r"contratos inteligentes",
+                   r"hyperledger", r"cadena de bloques"],
+    "Bases de datos": [r"databases?", r"bases? de datos", r"oracle database", r"oracle db",
+                       r"oracle \d{2}c", r"postgres(ql)?", r"sql", r"sql server", r"mysql",
+                       r"mongodb", r"sap ase", r"toad", r"dba"],
+    "Virtualización y SO": [r"oracle linux", r"oracle vm", r"red ?hat", r"rhel", r"vmware",
+                            r"virtualizacion", r"hyper-v", r"linux"],
+    "Observabilidad": [r"observability", r"observabilidad", r"prometheus", r"grafana",
+                       r"opentelemetry", r"datadog", r"dynatrace", r"new relic", r"apm",
+                       r"monitoreo de aplicaciones"],
+    "Low-code / No-code": [r"low[- ]?code", r"no[- ]code", r"power apps", r"outsystems", r"mendix"],
+    "Robótica / RPA": [r"rpa", r"robotic process automation", r"automatizacion robotica",
+                       r"uipath", r"automation anywhere"],
 }
+
+
+def _patron(lista):
+    import re as _re
+    return _re.compile(r"\b(?:" + "|".join(lista) + r")\b")
+
+
+PATRONES_RADAR = {tec: _patron(p) for tec, p in TECNOLOGIAS_RADAR.items()}
+
+# Frases que parecen de la tecnología pero no lo son (ej. "Adobe Creative Cloud" no es nube;
+# una suscripción a una base de datos de revistas o de normas no es un motor de base de datos).
+EXCLUSIONES_RADAR = {
+    "Bases de datos": _patron([r"publicaciones", r"journals?", r"science direct", r"bibliograf\w*",
+                               r"juridica", r"base de datos de empresas", r"registraduria",
+                               r"depuracion de (la |las )?bases? de datos"]),
+    "Cloud / Nube": _patron([r"creative cloud", r"document cloud", r"adobe"]),
+}
+
+
+def coincidencia(tec, texto_norm):
+    """Devuelve la palabra que hizo coincidir la tecnología, o None."""
+    m = PATRONES_RADAR[tec].search(texto_norm)
+    if not m:
+        return None
+    excl = EXCLUSIONES_RADAR.get(tec)
+    if excl and excl.search(texto_norm):
+        return None
+    return m.group(0)
+
+
+# Un contrato de SECOP solo cuenta como demanda de una tecnología si es de TI:
+# familia UNSPSC de TI (como en generar_contratos.py) o una palabra inequívoca de TI.
+# Así un mantenimiento de extintores o una obra nunca entran al radar.
+# Solo cuenta como demanda lo contratado en los últimos ANIOS_DEMANDA años. La fecha es la
+# de firma; si no hay, la de publicación, inicio o fin (lo que no tenga ninguna se cuenta). Un contrato de 2019 no dice qué se está comprando hoy.
+ANIOS_DEMANDA = 3
+
+FAMILIAS_TI = {"8111", "8110", "8112", "8116", "8310", "4320", "4321", "4322", "4323"}
+_TI_OBJETO = _patron([r"software", r"licencia(s|miento)?", r"plataforma tecnologica", r"servidor(es)?",
+                      r"sistemas? de informacion", r"infraestructura tecnologica", r"centro de datos",
+                      r"data center", r"tecnologias? de la informacion", r"\bti\b", r"ciberseguridad",
+                      r"seguridad informatica", r"nube", r"cloud", r"bases? de datos", r"oracle",
+                      r"microsoft", r"virtualizacion", r"desarrollo de (software|aplicaciones)"])
+
+
+# Contratos que no son demanda para una empresa de TI: convenios entre entidades,
+# solicitudes de información y contratos de persona natural (servicios profesionales
+# o de apoyo a la gestión), salvo que compren software, nube o un servicio especializado.
+_NO_DEMANDA = _patron([r"aunar esfuerzos", r"convenio", r"solicitud de (cotizaciones?|informacion)",
+                       r"plena autonomia",
+                       r"apoyar (a|al) (la |el )?(oficina|grupo|subdireccion|direccion|secretaria)"])
+_PERSONA_NATURAL = _patron([r"servicios? profesional(es)?", r"servicios de apoyo", r"apoyo a la gestion",
+                            r"servicios tecnicos", r"servicios administrativos"])
+_EMPRESA_TI = _patron([r"especializad[oa]s?", r"fabricante", r"plataforma tecnologica", r"software", r"saas",
+                       r"nube", r"cloud", r"licencia(s|miento)?"])
+
+
+def es_demanda(texto_norm: str) -> bool:
+    if _NO_DEMANDA.search(texto_norm):
+        return False
+    if _PERSONA_NATURAL.search(texto_norm) and not _EMPRESA_TI.search(texto_norm):
+        return False
+    return True
+
+
+def _es_ti(secop: dict, texto_norm: str) -> bool:
+    import re as _re
+    m = _re.search(r"(\d{4})", str(secop.get("unspsc") or ""))
+    if m and m.group(1) in FAMILIAS_TI:
+        return True
+    return bool(_TI_OBJETO.search(texto_norm))
 
 
 # Fabricante / partner con quién TAK podría aliarse para ofrecer cada tecnología
@@ -72,6 +172,7 @@ FABRICANTES = {
     "DevOps / CI-CD": "GitLab, HashiCorp, Atlassian",
     "Blockchain": "Ethereum, Hyperledger",
     "Bases de datos": "Oracle, MongoDB, PostgreSQL",
+    "Virtualización y SO": "Oracle, Red Hat, VMware",
     "Observabilidad": "Datadog, Grafana, Elastic",
     "Low-code / No-code": "OutSystems, Mendix, Power Apps",
     "Robótica / RPA": "UiPath, Automation Anywhere",
@@ -170,8 +271,8 @@ def contar_tendencias(meses_recientes=6):
         if fev and fev < corte:
             continue
         texto = _norm((d.get("titulo","") or "") + " " + (d.get("descripcion","") or ""))
-        for tec, patrones in TECNOLOGIAS_RADAR.items():
-            if any(p in texto for p in patrones):
+        for tec in PATRONES_RADAR:
+            if coincidencia(tec, texto):
                 conteo[tec] += 1
                 if fev and (tec not in fecha_reciente or fev > fecha_reciente[tec]):
                     fecha_reciente[tec] = fev
@@ -201,6 +302,10 @@ def contar_secop():
     entidades = {}
     fecha_reciente = {}
     evidencia = {}          # contrato MÁS RECIENTE que respalda cada tecnología
+    vistos = set()          # un mismo contrato puede estar en dos contenedores: se cuenta una vez
+    from datetime import datetime as _dt, timedelta as _td
+    corte_demanda = (_dt.now() - _td(days=365 * ANIOS_DEMANDA)).strftime("%Y-%m-%d")
+    detalle = {}            # tecnología -> contratos contados (para revisar con --detalle)
     for cont in CONT_SECOP_SILVER:
         try:
             cli = bs.get_container_client(cont)
@@ -222,11 +327,34 @@ def contar_secop():
                 val = 0
             # la entidad compradora
             ent = secop.get("entidad_contratante") or secop.get("entidad") or ""
-            ffirma = str(secop.get("fecha_firma") or "")[:10]
-            for tec, patrones in TECNOLOGIAS_RADAR.items():
-                if any(p in texto for p in patrones):
+            # Fecha del contrato: firma; si no hay, publicación del proceso, inicio o fin.
+            # La fecha de fin solo sirve para descartar contratos viejos; no se muestra
+            # como fecha del contrato porque puede estar en el futuro.
+            ffirma = str(secop.get("fecha_firma") or secop.get("fecha_publicacion")
+                         or secop.get("fecha_inicio") or "")[:10]
+            ffin = str(secop.get("fecha_fin") or d.get("fecha_evento_utc") or "")[:10]
+            if not _es_ti(secop, texto):
+                continue                    # no es un contrato de TI: no es demanda tecnológica
+            if not es_demanda(texto):
+                continue                    # convenio, persona natural o solicitud de información
+            if (ffirma or ffin) and (ffirma or ffin) < corte_demanda:
+                continue                    # contrato antiguo: no refleja la demanda actual
+            # El mismo proceso llega como PROCESO y como CONTRATO, con números internos
+            # distintos pero el mismo número de SECOP (CO1.NTC...): se cuenta una vez.
+            m_ntc = re.search(r"(CO1\.NTC\.\d+)", d.get("url", "") or "")
+            clave = (m_ntc.group(1) if m_ntc else
+                     (str(secop.get("id_secop") or "").strip().upper() or d.get("url", "") or texto[:120]))
+            if clave in vistos:
+                continue                    # ya contado desde otro contenedor
+            vistos.add(clave)
+            for tec in PATRONES_RADAR:
+                palabra = coincidencia(tec, texto)
+                if palabra:
                     conteo[tec] += 1
                     monto[tec] += val
+                    detalle.setdefault(tec, []).append(
+                        (val, ffirma, ent, (secop.get("objeto", "") or d.get("titulo", "") or "")[:110],
+                         palabra, d.get("url", "") or ""))
                     if ent:
                         entidades.setdefault(tec, Counter())[ent] += 1
                     if ffirma and (tec not in fecha_reciente or ffirma > fecha_reciente[tec]):
@@ -235,7 +363,7 @@ def contar_secop():
                         evidencia[tec] = {
                             "objeto": (secop.get("objeto", "") or d.get("titulo", "") or "").strip(),
                             "entidad": ent, "fecha": ffirma or "", "url": d.get("url", "") or ""}
-    return conteo, monto, entidades, fecha_reciente, evidencia
+    return conteo, monto, entidades, fecha_reciente, evidencia, detalle
 
 
 def descubrir_tecnologias_ia(muestra_titulos):
@@ -294,11 +422,35 @@ def _juntar_titulos():
 
 
 def main():
+    # La consola y los archivos de Windows usan otra codificación: sin esto, una tilde o un
+    # guion largo en el objeto de un contrato detiene el programa al imprimir.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
     escribir = "--escribir" in sys.argv
+    # --detalle "Cloud,Bases de datos": lista los contratos que suma cada tecnología, para
+    # validarlos. Solo lee SECOP (no tendencias ni IA) y revisa todas las pedidas de una vez.
+    if "--detalle" in sys.argv:
+        i = sys.argv.index("--detalle")
+        pedidas = [_norm(x).strip() for x in (sys.argv[i + 1] if i + 1 < len(sys.argv) else "").split(",") if x.strip()]
+        print("Leyendo contratos SECOP de Silver (puede tardar unos minutos)...", file=sys.stderr)
+        secop_det = contar_secop()[5]
+        for tec, lista in secop_det.items():
+            if pedidas and not any(b in _norm(tec) for b in pedidas):
+                continue
+            lista = sorted(lista, reverse=True)
+            print(f"\n=== {tec}: {len(lista)} contratos, ${sum(x[0] for x in lista):,.0f} (de mayor a menor valor) ===")
+            for val, ff, ent, obj, palabra, url in lista:
+                print(f"  ${val:>16,.0f}  {ff or 'sin fecha':10}  [{palabra}]  {ent[:35]:35} | {obj}")
+                if url:
+                    print(f"  {'':18}{url}")
+        print("Listo.", file=sys.stderr)
+        return
     print("Contando tecnologías en tendencias globales...")
     tend, tend_fecha, tend_evid = contar_tendencias(meses_recientes=6)
     print("Contando tecnologías en contratos SECOP (Colombia)...")
-    secop_n, secop_monto, secop_entidades, secop_fecha, secop_evid = contar_secop()
+    secop_n, secop_monto, secop_entidades, secop_fecha, secop_evid, secop_det = contar_secop()
     print("Descubriendo tecnologías NUEVAS con IA (fuera de la lista)...")
     titulos_info = _juntar_titulos()
     nuevas_ia = descubrir_tecnologias_ia([t["titulo"] for t in titulos_info])

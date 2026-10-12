@@ -204,9 +204,16 @@ def _pasa_filtros(valor: float, estado: str) -> bool:
     return True
 
 
+def _entero(v) -> int:
+    try:
+        return int(float(str(v).strip() or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
 def _fila(competidor, entidad, objeto, valor, estado, tipo, ubicacion, id_secop, url, es_tak,
           unspsc="", fecha_firma="", fecha_inicio="", fecha_fin="", duracion="",
-          prorrogable="", valor_pagado=0, valor_pendiente=0):
+          prorrogable="", valor_pagado=0, valor_pendiente=0, dias_adicionados=0):
     return {
         "PartitionKey": ("TAK" if es_tak else "COMPETIDOR"),
         "RowKey": _rk(competidor, id_secop, url),
@@ -229,6 +236,9 @@ def _fila(competidor, entidad, objeto, valor, estado, tipo, ubicacion, id_secop,
         "prorrogable": prorrogable or "",
         "valor_pagado": float(valor_pagado or 0),
         "valor_pendiente": float(valor_pendiente or 0),
+        # Días de prórroga que SECOP registra al contrato. Si son > 0, la fecha de fin y el
+        # valor ya incluyen las modificaciones (la página del PROCESO muestra los iniciales).
+        "dias_adicionados": _entero(dias_adicionados),
         "categoria": _categoria_unspsc(unspsc),
         "tecnologia": _detectar_tecnologia(objeto or ""),
     }
@@ -284,6 +294,7 @@ def leer_competidores() -> list:
             prorrogable=secop.get("prorrogable", ""),
             valor_pagado=secop.get("valor_pagado", 0),
             valor_pendiente=secop.get("valor_pendiente_ejecucion", 0),
+            dias_adicionados=secop.get("dias_adicionados", 0),
         ))
     print(f"  Competidores: {len(filas)} contratos de TI (excluidos {excl_filtro} por filtro monto/estado, {excl_norelevante} por no ser de TI)")
     return filas
@@ -299,7 +310,7 @@ def leer_tak() -> list:
                    "valor_del_contrato,valor_pagado,valor_pendiente_de_ejecucion,"
                    "estado_contrato,tipo_de_contrato,proveedor_adjudicado,departamento,"
                    "fecha_de_firma,fecha_de_inicio_del_contrato,fecha_de_fin_del_contrato,"
-                   "duraci_n_del_contrato,el_contrato_puede_ser_prorrogado,urlproceso",
+                   "duraci_n_del_contrato,el_contrato_puede_ser_prorrogado,dias_adicionados,urlproceso",
     }
     # auth de Socrata (mismo token del secop_client)
     auth = _socrata_auth()
@@ -361,6 +372,7 @@ def leer_tak() -> list:
             prorrogable=it.get("el_contrato_puede_ser_prorrogado", ""),
             valor_pagado=pagado,
             valor_pendiente=pendiente,
+            dias_adicionados=it.get("dias_adicionados", 0),
         ))
     print(f"  TAK: {len(filas)} contratos de TI (excluidos {excl} por filtro, {excl_nr} por no ser de TI)")
     return filas

@@ -158,11 +158,29 @@ def alertas_vencimientos(tsc):
         objeto = (e.get("objeto", "") or "")
         renovable = any(p in _norm(objeto) for p in PALABRAS_RENOVABLE)
         entidad = e.get("entidad_contratante", "?")
+        # Contrato modificado (prórroga o adición): SECOP ya trae la fecha de fin y el valor
+        # ACTUALES; la página del PROCESO en SECOP sigue mostrando los iniciales. Se aclara en
+        # la tarjeta para que nadie piense que el tablero tiene un dato equivocado.
+        try:
+            dias_ad = int(float(e.get("dias_adicionados") or 0))
+        except (TypeError, ValueError):
+            dias_ad = 0
+        modificado = dias_ad > 0 or _norm(e.get("estado", "")) == "modificado"
+        if dias_ad > 0:
+            nota = (f"Contrato modificado: prorrogado {dias_ad} días. La fecha y el valor ya incluyen "
+                    "las modificaciones; la página del proceso en SECOP muestra los valores iniciales.")
+        elif modificado:
+            nota = ("Contrato modificado: la fecha y el valor ya incluyen las modificaciones; "
+                    "la página del proceso en SECOP muestra los valores iniciales.")
+        else:
+            nota = ""
         marcas = []
         if renovable:
             marcas.append("Renovable")
         if _relacion(entidad) == "Cliente tuyo":
             marcas.append("Cliente tuyo")
+        if modificado:
+            marcas.append("Prorrogado" if dias_ad > 0 else "Modificado")
         alertas.append({
             "tipo": "VENCIMIENTO",
             "titulo": entidad,
@@ -176,6 +194,7 @@ def alertas_vencimientos(tsc):
             "url": e.get("url", "") or "",
             "clave": e.get("id_secop", "") or e.get("RowKey", ""),
             "_renovable": renovable,
+            "nota": nota,
         })
     # primero los renovables, luego los que vencen antes, y a igual fecha los de mayor valor
     alertas.sort(key=lambda x: (not x["_renovable"], x["dias"], -x["monto"]))
@@ -414,6 +433,7 @@ def main():
             "categoria": a.get("categoria",""),
             "por_que": a["por_que"],
             "url": a.get("url", "") or "",
+            "nota": a.get("nota", "") or "",
         })
 
     print(f"\n  TOTAL alertas: {len(filas)}")
